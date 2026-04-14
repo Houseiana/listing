@@ -748,6 +748,10 @@ function AddListingPage() {
 
   const saveStepDraft = async (nextStep: number): Promise<{ ok: boolean; message?: string }> => {
     if (!userId) return { ok: false, message: 'Authentication required' };
+    if (!selectedUser?.id) {
+      setShowIntro(true);
+      return { ok: false, message: '' };
+    }
 
     try {
       const formData = new FormData();
@@ -758,8 +762,8 @@ function AddListingPage() {
       if (effectivePropertyId) {
         formData.append('propertyId', effectivePropertyId);
       }
-      formData.append('hostId', selectedUser?.id || userId);
-      formData.append('adminId', selectedUser?.id || userId);
+      formData.append('hostId', selectedUser.id);
+      formData.append('adminId', userId);
 
       if (currentStep === 0) {
         formData.append('propertyType.id', listing.propertyType || '');
@@ -1104,7 +1108,7 @@ function AddListingPage() {
           });
           if (STORAGE_KEY) localStorage.removeItem(STORAGE_KEY);
           setHasUnsavedChanges(false);
-          router.push('/host-dashboard');
+          router.push('/');
         } else {
           throw new Error(result.message || 'Failed to update property');
         }
@@ -1125,7 +1129,7 @@ function AddListingPage() {
         });
         if (STORAGE_KEY) localStorage.removeItem(STORAGE_KEY);
         setHasUnsavedChanges(false);
-        router.push('/host-dashboard');
+        router.push('/');
       } else {
         throw new Error(result.message || 'Failed to add property');
       }
@@ -1324,7 +1328,7 @@ function AddListingPage() {
               <button
                 onClick={() => {
                   if (STORAGE_KEY) localStorage.removeItem(STORAGE_KEY);
-                  router.push('/host-dashboard');
+                  router.push('/');
                 }}
                 className="px-5 py-3 text-xs font-normal text-[#1D242B] border border-[#F0F2F5] rounded-full hover:bg-gray-50 transition-colors"
               >

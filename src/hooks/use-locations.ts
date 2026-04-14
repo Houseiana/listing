@@ -6,6 +6,17 @@ interface Location {
   name: string;
 }
 
+function extractArray(data: any): any[] {
+  if (Array.isArray(data)) return data;
+  if (data && typeof data === 'object') {
+    // Look for common keys: data, states, cities, villages, countries, etc.
+    for (const key of Object.keys(data)) {
+      if (Array.isArray(data[key])) return data[key];
+    }
+  }
+  return [];
+}
+
 export function useCountries() {
   const [countries, setCountries] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -15,8 +26,7 @@ export function useCountries() {
       try {
         const res = await LookupsAPI.getCountries();
         if (res.success && res.data) {
-          const data = Array.isArray(res.data) ? res.data : res.data.data || [];
-          setCountries(data);
+          setCountries(extractArray(res.data));
         }
       } catch (e) {
         console.error('Failed to fetch countries:', e);
@@ -44,8 +54,7 @@ export function useStates(countryId: string) {
       try {
         const res = await LookupsAPI.getStates(countryId);
         if (res.success && res.data) {
-          const data = Array.isArray(res.data) ? res.data : res.data.data || [];
-          setStates(data);
+          setStates(extractArray(res.data));
         }
       } catch (e) {
         console.error('Failed to fetch states:', e);
@@ -73,8 +82,7 @@ export function useCities(stateId: string) {
       try {
         const res = await LookupsAPI.getCities(stateId);
         if (res.success && res.data) {
-          const data = Array.isArray(res.data) ? res.data : res.data.data || [];
-          setCities(data);
+          setCities(extractArray(res.data));
         }
       } catch (e) {
         console.error('Failed to fetch cities:', e);
@@ -102,8 +110,7 @@ export function useVillages(cityId: string) {
       try {
         const res = await LookupsAPI.getVillages(cityId);
         if (res.success && res.data) {
-          const data = Array.isArray(res.data) ? res.data : res.data.data || [];
-          setVillages(data);
+          setVillages(extractArray(res.data));
         }
       } catch (e) {
         console.error('Failed to fetch villages:', e);

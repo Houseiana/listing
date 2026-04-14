@@ -57,7 +57,7 @@ export const TitleStep = ({
       {/* Title Section */}
       <div className="flex flex-col gap-3">
         <h3 className="text-base font-bold text-[#2F3A45]">
-          {'Title'}
+          {'Short titles work best'}
         </h3>
         <div className="relative">
           <textarea

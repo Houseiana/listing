@@ -7,7 +7,12 @@ import {
   TreePine,
   Warehouse,
   Hotel,
-  Tent,
+  Ship,
+  Tractor,
+  DoorOpen,
+  Building,
+  BedDouble,
+  Mountain,
   LucideIcon,
 } from 'lucide-react';
 
@@ -19,17 +24,53 @@ interface PropertyType {
 }
 
 const ICON_MAP: Record<string, LucideIcon> = {
-  apartment: Building2,
-  house: Home,
-  villa: Castle,
-  cabin: TreePine,
-  cottage: TreePine,
-  townhouse: Home,
-  loft: Warehouse,
-  studio: Hotel,
-  chalet: TreePine,
-  tent: Tent,
+  // Exact matches from API
+  'apartment / condo': Building2,
+  'house': Home,
+  'villa': Castle,
+  'studio / loft': Warehouse,
+  'townhouse': Building,
+  'guesthouse / annex': DoorOpen,
+  'serviced apartment': Hotel,
+  'aparthotel': Building2,
+  'cabin / chalet': Mountain,
+  'farm stay': Tractor,
+  'houseboat': Ship,
+  'casa': Home,
+  'other': BedDouble,
+  // Fallback single-word matches
+  'apartment': Building2,
+  'condo': Building2,
+  'cabin': TreePine,
+  'chalet': Mountain,
+  'loft': Warehouse,
+  'studio': Warehouse,
+  'cottage': TreePine,
+  'guesthouse': DoorOpen,
+  'annex': DoorOpen,
+  'farm': Tractor,
 };
+
+function findIcon(name: string): LucideIcon {
+  const lower = name.toLowerCase().trim();
+  // Try exact match first
+  if (ICON_MAP[lower]) return ICON_MAP[lower];
+  // Try partial match
+  for (const key of Object.keys(ICON_MAP)) {
+    if (lower.includes(key) || key.includes(lower)) return ICON_MAP[key];
+  }
+  return Home;
+}
+
+function extractArray(data: any): any[] {
+  if (Array.isArray(data)) return data;
+  if (data && typeof data === 'object') {
+    for (const key of Object.keys(data)) {
+      if (Array.isArray(data[key])) return data[key];
+    }
+  }
+  return [];
+}
 
 export function usePropertiesTypes() {
   const [propertyTypes, setPropertyTypes] = useState<PropertyType[]>([]);
@@ -40,15 +81,12 @@ export function usePropertiesTypes() {
       try {
         const res = await LookupsAPI.getPropertyTypes();
         if (res.success && res.data) {
-          const raw = Array.isArray(res.data) ? res.data : res.data.data || [];
+          const raw = extractArray(res.data);
           const mapped: PropertyType[] = raw.map((item: any) => ({
             id: String(item.id),
             name: item.name || '',
             label: item.name || item.label || '',
-            icon:
-              ICON_MAP[
-                (item.name || '').toLowerCase().replace(/ /g, '_')
-              ] || Home,
+            icon: findIcon(item.name || ''),
           }));
           setPropertyTypes(mapped);
         }
