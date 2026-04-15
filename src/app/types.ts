@@ -43,6 +43,8 @@ export interface PropertyFormData {
   stars: number;
   cancellationPolicy: CancellationPolicy;
   cleaningFee: number;
+  electricalFee: number;
+  waterFee: number;
   basePrice: number;
   weeklyDiscount: number;
   monthlyDiscount: number;

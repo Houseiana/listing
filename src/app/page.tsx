@@ -13,7 +13,7 @@ export default async function HomePage() {
           ''
         ) : (
           <Link
-            href="/signin"
+            href="/sign-in"
             className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-800"
           >
             <LogIn className="h-4 w-4" />

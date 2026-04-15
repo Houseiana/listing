@@ -178,6 +178,82 @@ export const PricingStep = ({
             )}
           </div>
 
+          {/* Electrical fee */}
+          <div className="bg-[#FCFCFC] border border-[#F0F2F5] rounded-2xl p-6 flex flex-col gap-6">
+            <div>
+              <h4 className="text-[15px] font-semibold text-[#1D242B]">
+                {'Electrical Fee'}
+              </h4>
+              <p className="text-xs text-[#9CA3AF] mt-1">
+                {'One-time fee charged to guests for electricity'}
+              </p>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1 border-b-2 border-[#2F3A45] pb-0.5 group focus-within:border-[#FCC519] transition-colors">
+                <span className="text-lg font-semibold text-[#2F3A45]">{currency || 'EGP'}</span>
+                <input
+                  type="number"
+                  min="0"
+                  max={maxCleaningFee}
+                  title="Electrical fee amount"
+                  value={listing.electricalFee || ''}
+                  disabled={readOnly}
+                  onChange={(e) => {
+                    let val = parseInt(e.target.value);
+                    if (isNaN(val)) val = 0;
+                    if (val > maxCleaningFee) val = maxCleaningFee;
+                    setListing({ ...listing, electricalFee: val });
+                  }}
+                  className={`text-lg font-semibold w-16 border-0 focus:ring-0 outline-none bg-transparent p-0 ${
+                    readOnly ? 'cursor-not-allowed text-gray-400' : ''
+                  } text-[#2F3A45]`}
+                />
+                {!readOnly && <Pencil size={12} className="text-[#9CA3AF] group-focus-within:text-[#FCC519] transition-colors flex-shrink-0" />}
+              </div>
+              <span className="text-[10px] font-bold text-[#10B981] bg-[rgba(16,185,129,0.1)] px-3 py-1.5 rounded-full">
+                {'Optional'}
+              </span>
+            </div>
+          </div>
+
+          {/* Water fee */}
+          <div className="bg-[#FCFCFC] border border-[#F0F2F5] rounded-2xl p-6 flex flex-col gap-6">
+            <div>
+              <h4 className="text-[15px] font-semibold text-[#1D242B]">
+                {'Water Fee'}
+              </h4>
+              <p className="text-xs text-[#9CA3AF] mt-1">
+                {'One-time fee charged to guests for water'}
+              </p>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1 border-b-2 border-[#2F3A45] pb-0.5 group focus-within:border-[#FCC519] transition-colors">
+                <span className="text-lg font-semibold text-[#2F3A45]">{currency || 'EGP'}</span>
+                <input
+                  type="number"
+                  min="0"
+                  max={maxCleaningFee}
+                  title="Water fee amount"
+                  value={listing.waterFee || ''}
+                  disabled={readOnly}
+                  onChange={(e) => {
+                    let val = parseInt(e.target.value);
+                    if (isNaN(val)) val = 0;
+                    if (val > maxCleaningFee) val = maxCleaningFee;
+                    setListing({ ...listing, waterFee: val });
+                  }}
+                  className={`text-lg font-semibold w-16 border-0 focus:ring-0 outline-none bg-transparent p-0 ${
+                    readOnly ? 'cursor-not-allowed text-gray-400' : ''
+                  } text-[#2F3A45]`}
+                />
+                {!readOnly && <Pencil size={12} className="text-[#9CA3AF] group-focus-within:text-[#FCC519] transition-colors flex-shrink-0" />}
+              </div>
+              <span className="text-[10px] font-bold text-[#10B981] bg-[rgba(16,185,129,0.1)] px-3 py-1.5 rounded-full">
+                {'Optional'}
+              </span>
+            </div>
+          </div>
+
           {/* Weekend Surge */}
           <div className="bg-[#FCFCFC] border border-[#F0F2F5] rounded-2xl p-6 flex flex-col gap-6 opacity-60 cursor-not-allowed select-none">
             <div className="flex items-start justify-between">

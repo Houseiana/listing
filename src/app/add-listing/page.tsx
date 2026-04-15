@@ -103,12 +103,6 @@ function AddListingPage() {
     return () => { if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current); };
   }, [userSearchQuery, searchUsers]);
 
-  // Persistence States
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [isAutoSaving, setIsAutoSaving] = useState(false);
-  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
-  const [showRestoreModal, setShowRestoreModal] = useState(false);
-  const [restoreDraft, setRestoreDraft] = useState<any>(null);
   const [currency, setCurrency] = useState<string>('');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [hasAttemptedNext, setHasAttemptedNext] = useState(false);
@@ -147,6 +141,8 @@ function AddListingPage() {
       freeCancellationDays: null,
     },
     cleaningFee: 0,
+    electricalFee: 0,
+    waterFee: 0,
     basePrice: 0,
     weeklyDiscount: 0,
     monthlyDiscount: 0,
@@ -174,119 +170,6 @@ function AddListingPage() {
 
   const { cities } = useCities(listing.country);
 
-  // LocalStorage Key
-  const STORAGE_KEY = userId ? `add-listing-draft-${userId}` : null;
-
-  // Load draft from localStorage on mount
-  useEffect(() => {
-    if (!STORAGE_KEY || propertyId) return; // Don't restore if editing existing property
-
-    const savedDraft = localStorage.getItem(STORAGE_KEY);
-    if (savedDraft) {
-      try {
-        const parsed = JSON.parse(savedDraft);
-        setRestoreDraft(parsed);
-        setShowRestoreModal(true);
-      } catch (e) {
-        console.error('Failed to parse saved draft', e);
-      }
-    }
-  }, [STORAGE_KEY, propertyId]);
-
-  // localStorage backup effect (debounced)
-  useEffect(() => {
-    if (!STORAGE_KEY || isSubmitting) return;
-
-    const timeoutId = setTimeout(async () => {
-      // Convert File objects to base64 for storage
-      const processedPhotos = await Promise.all(
-        listing.photos.map(async (photo) => {
-          if (photo instanceof File) {
-            return new Promise((resolve) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve({
-                type: 'file',
-                data: reader.result,
-                name: photo.name,
-                size: photo.size,
-              });
-              reader.readAsDataURL(photo);
-            });
-          }
-          return photo; // Keep string URLs as is
-        })
-      );
-
-      const draft = {
-        listing: {
-          ...listing,
-          photos: processedPhotos,
-        },
-        currentStep,
-        newPropertyId, // Persist the ID we got from Step 0
-        currency,
-        savedAt: new Date().toISOString(),
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
-    }, 1000);
-
-    return () => clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listing, currentStep, STORAGE_KEY, isSubmitting]);
-
-  // Track unsaved changes
-  useEffect(() => {
-    // If not currently loading or submitting, any change to listing or step means unsaved changes
-    // unless we just saved. This is a simplified check.
-    setHasUnsavedChanges(true);
-  }, [listing, currentStep]);
-
-  // Beforeunload warning
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges && !isSubmitting) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [hasUnsavedChanges, isSubmitting]);
-
-  // Auto-save logic
-  useEffect(() => {
-    if (!hasUnsavedChanges || !userId || isSubmitting || propertyId) return;
-
-    const intervalId = setInterval(() => {
-      performAutoSave();
-    }, 60000); // Auto-save every 60 seconds
-
-    return () => clearInterval(intervalId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    hasUnsavedChanges,
-    userId,
-    isSubmitting,
-    propertyId,
-    listing,
-    currentStep,
-  ]);
-
-  const performAutoSave = async () => {
-    if (isAutoSaving || !hasUnsavedChanges) return;
-    setIsAutoSaving(true);
-    try {
-      const result = await saveStepDraft(currentStep);
-      if (result.ok) {
-        setHasUnsavedChanges(false);
-        setLastSavedAt(new Date());
-      }
-    } catch (e) {
-      console.error('Auto-save failed', e);
-    } finally {
-      setIsAutoSaving(false);
-    }
-  };
 
   // Fetch data for Edit Mode
   useEffect(() => {
@@ -400,6 +283,8 @@ function AddListingPage() {
 
             // Pricing
             cleaningFee: property.cleaningFee || property.cleaning_fee || 0,
+            electricalFee: property.electricalFee || property.electrical_fee || 0,
+            waterFee: property.waterFee || property.water_fee || 0,
             weeklyDiscount: property.weeklyDiscount || property.weekly_discount || 0,
             monthlyDiscount: property.monthlyDiscount || property.monthly_discount || 0,
             newListingDiscount: property.newListingDiscount || property.new_listing_discount || 0,
@@ -891,6 +776,14 @@ function AddListingPage() {
           'pricing.cleaningFee',
           (listing.cleaningFee || 0).toString()
         );
+        formData.append(
+          'pricing.electricalFee',
+          (listing.electricalFee || 0).toString()
+        );
+        formData.append(
+          'pricing.waterFee',
+          (listing.waterFee || 0).toString()
+        );
         formData.append('pricing.serviceFee', '0');
       }
 
@@ -979,8 +872,6 @@ function AddListingPage() {
           setNewPropertyId(data.id);
         }
         if (rawData.currency) setCurrency(rawData.currency);
-        setHasUnsavedChanges(false);
-        setLastSavedAt(new Date());
         return { ok: true };
       }
       // Extract error message from API response
@@ -1106,8 +997,6 @@ function AddListingPage() {
             text: `Your property "${listing.title}" has been updated successfully.`,
             confirmButtonColor: '#000',
           });
-          if (STORAGE_KEY) localStorage.removeItem(STORAGE_KEY);
-          setHasUnsavedChanges(false);
           router.push('/');
         } else {
           throw new Error(result.message || 'Failed to update property');
@@ -1127,8 +1016,6 @@ function AddListingPage() {
           text: 'Your property listing has been created successfully.',
           confirmButtonColor: '#000',
         });
-        if (STORAGE_KEY) localStorage.removeItem(STORAGE_KEY);
-        setHasUnsavedChanges(false);
         router.push('/');
       } else {
         throw new Error(result.message || 'Failed to add property');
@@ -1327,7 +1214,6 @@ function AddListingPage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => {
-                  if (STORAGE_KEY) localStorage.removeItem(STORAGE_KEY);
                   router.push('/');
                 }}
                 className="px-5 py-3 text-xs font-normal text-[#1D242B] border border-[#F0F2F5] rounded-full hover:bg-gray-50 transition-colors"
@@ -1660,66 +1546,6 @@ function AddListingPage() {
         </>
       )}
 
-      {/* Restore Draft Modal */}
-      {showRestoreModal && restoreDraft && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-t-3xl sm:rounded-2xl p-6 sm:max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-300">
-            <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-5 sm:hidden" />
-            <h3 className="text-xl font-bold text-[#1D242B] mb-2">
-              Resume your draft?
-            </h3>
-            <p className="text-sm text-[#647C94] mb-6">
-              {`You have an unsaved draft from ${new Date(restoreDraft.savedAt).toLocaleString()}`}
-            </p>
-            <div className="flex flex-col-reverse sm:flex-row gap-3">
-              <button
-                onClick={() => {
-                  if (STORAGE_KEY) localStorage.removeItem(STORAGE_KEY);
-                  setShowRestoreModal(false);
-                }}
-                className="flex-1 px-4 py-3.5 bg-[#F0F2F5] text-[#1D242B] font-semibold rounded-xl hover:bg-gray-200 transition-colors"
-              >
-                Start Fresh
-              </button>
-              <button
-                onClick={async () => {
-                  // Convert stored base64 data back to File objects
-                  const processedPhotos = await Promise.all(
-                    (restoreDraft.listing.photos || []).map(async (photo: any) => {
-                      if (photo && typeof photo === 'object' && photo.type === 'file' && photo.data) {
-                        // Convert base64 back to File
-                        const response = await fetch(photo.data);
-                        const blob = await response.blob();
-                        return new File([blob], photo.name || 'uploaded-image.jpg', {
-                          type: blob.type,
-                        });
-                      }
-                      return photo; // Keep string URLs as is
-                    })
-                  );
-
-                  setListing({
-                    ...restoreDraft.listing,
-                    photos: processedPhotos,
-                  });
-                  setCurrentStep(restoreDraft.currentStep);
-                  if (restoreDraft.newPropertyId) {
-                    setNewPropertyId(restoreDraft.newPropertyId);
-                  }
-                  if (restoreDraft.currency) {
-                    setCurrency(restoreDraft.currency);
-                  }
-                  setShowIntro(false);
-                  setShowRestoreModal(false);
-                }}
-                className="flex-1 px-4 py-3.5 bg-[#FCC519] text-[#1D242B] font-semibold rounded-xl hover:bg-[#f0bb0e] transition-colors"
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

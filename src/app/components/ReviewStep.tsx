@@ -131,6 +131,16 @@ export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
                 {`+ ${currency || 'EGP'} ${listing.cleaningFee} cleaning fee`}
               </span>
             )}
+            {listing.electricalFee > 0 && (
+              <span className="text-xs text-[#9CA3AF] ml-1">
+                {`+ ${currency || 'EGP'} ${listing.electricalFee} electrical fee`}
+              </span>
+            )}
+            {listing.waterFee > 0 && (
+              <span className="text-xs text-[#9CA3AF] ml-1">
+                {`+ ${currency || 'EGP'} ${listing.waterFee} water fee`}
+              </span>
+            )}
           </div>
         </div>
       </div>
