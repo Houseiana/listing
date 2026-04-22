@@ -111,6 +111,22 @@ export const LocationStep = ({
     listingRef.current = listing;
   }, [listing]);
 
+  useEffect(() => {
+    if (readOnly) return;
+    if (listing.country) return;
+    if (countries.length === 0) return;
+    const egypt = countries.find((c) =>
+      c.name.toLowerCase().includes('egypt')
+    );
+    if (egypt) {
+      setListing({
+        ...listingRef.current,
+        country: String(egypt.id),
+        countryName: egypt.name,
+      });
+    }
+  }, [countries, listing.country, readOnly, setListing]);
+
   // Once states reload for a new country, resolve any pending state name → ID
   useEffect(() => {
     if (pendingStateNameRef.current && states.length > 0) {

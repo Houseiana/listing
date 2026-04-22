@@ -108,7 +108,7 @@ function AddListingPage() {
   const [hasAttemptedNext, setHasAttemptedNext] = useState(false);
   const [listing, setListing] = useState<PropertyFormData>({
     propertyType: '',
-    country: '1',
+    country: '',
     street: '',
     apt: '',
     city: '',
@@ -119,8 +119,8 @@ function AddListingPage() {
     buildingNumber: '',
     floorNumber: '',
     unitNumber: '',
-    latitude: 25.2854,
-    longitude: 51.531,
+    latitude: 30.0444,
+    longitude: 31.2357,
     guests: 4,
     bedrooms: 2,
     beds: 2,
