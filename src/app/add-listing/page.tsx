@@ -1438,7 +1438,7 @@ function AddListingPage() {
                       resetAddUserForm();
                       setShowAddUserForm(true);
                     }}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3.5 border-2 border-dashed border-[#E5E9EE] rounded-2xl text-sm font-semibold text-[#1D242B] hover:border-[#FCC519] hover:bg-[#FCC519]/5 transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3.5 border-2 border-dashed border-[#E5E9EE] rounded-2xl text-sm font-semibold text-[#1D242B] hover:border-[#FCC519] hover:bg-[#FCC519]/5 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <UserPlus className="w-5 h-5 text-[#FCC519]" />
                     Add new user
@@ -1556,7 +1556,7 @@ function AddListingPage() {
                         type="button"
                         onClick={handleCreateUser}
                         disabled={isCreatingUser}
-                        className="flex-1 py-3 rounded-xl text-sm font-semibold text-[#1D242B] bg-[#FCC519] hover:bg-[#f0bb0e] transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+                        className="flex-1 py-3 rounded-xl text-sm font-semibold text-[#1D242B] bg-[#FCC519] hover:bg-[#f0bb0e] transition-colors disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {isCreatingUser ? (
                           <>
@@ -1579,8 +1579,8 @@ function AddListingPage() {
         </main>
 
       ) : showIntro ? (
-        <main className="flex-1 pt-24 lg:pt-28 pb-24 lg:pb-4 overflow-y-auto flex items-start lg:items-center justify-center">
-          <div className="flex flex-col items-center gap-6 lg:gap-10 px-3 md:px-6 max-w-[1218px] w-full">
+        <main className="flex-1 pt-24 lg:pt-28 pb-24 lg:pb-4 overflow-y-auto flex items-start justify-center">
+          <div className="flex flex-col items-center gap-6 lg:gap-10 px-3 md:px-6 max-w-[1218px] w-full lg:my-auto">
             {/* Selected user banner */}
             <div className="w-full max-w-[600px] flex items-center justify-between px-5 py-3 mt-8 bg-[#F8F9FA] border border-[#E5E9EE] rounded-2xl">
               <div className="flex items-center gap-3">
