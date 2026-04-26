@@ -7,7 +7,8 @@ import { useAuth, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 import Swal from 'sweetalert2';
-import { MapPin, Navigation, PenLine, Search, User, X } from 'lucide-react';
+import { MapPin, Navigation, PenLine, Search, User, UserPlus, X, ArrowLeft } from 'lucide-react';
+import { stripArabicNumerals, blockArabicNumeralKey } from '@/lib/utils/numeric-input';
 import { PropertyFormData } from '@/app/types';
 import {
   PropertyTypeStep,
@@ -62,6 +63,17 @@ function AddListingPage() {
   const userSearchRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Add new user form state
+  const [showAddUserForm, setShowAddUserForm] = useState(false);
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [newUserForm, setNewUserForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+  });
+  const [newUserErrors, setNewUserErrors] = useState<Record<string, string>>({});
+
   // Close user dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -102,6 +114,102 @@ function AddListingPage() {
     searchTimeoutRef.current = setTimeout(() => searchUsers(userSearchQuery), 400);
     return () => { if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current); };
   }, [userSearchQuery, searchUsers]);
+
+  const resetAddUserForm = () => {
+    setNewUserForm({ firstName: '', lastName: '', email: '', phone: '' });
+    setNewUserErrors({});
+  };
+
+  const handleCreateUser = async () => {
+    const errors: Record<string, string> = {};
+    const firstName = newUserForm.firstName.trim();
+    const lastName = newUserForm.lastName.trim();
+    const email = newUserForm.email.trim();
+    const phone = newUserForm.phone.trim();
+
+    if (!firstName) errors.firstName = 'First name is required';
+    if (!lastName) errors.lastName = 'Last name is required';
+    if (!email) {
+      errors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = 'Enter a valid email address';
+    }
+    if (!phone) {
+      errors.phone = 'Phone number is required';
+    } else if (phone.length < 6) {
+      errors.phone = 'Phone number is too short';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setNewUserErrors(errors);
+      return;
+    }
+    setNewUserErrors({});
+
+    setIsCreatingUser(true);
+    try {
+      const token = await getToken();
+      if (!token) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Authentication Required',
+          text: 'Please sign in to create a user.',
+          confirmButtonColor: '#000',
+        });
+        return;
+      }
+
+      const res = await UsersAPI.upsertClerk(
+        { email, firstName, lastName, phone },
+        token
+      );
+
+      if (res.success && res.data) {
+        const raw = res.data as Record<string, unknown>;
+        const user = (raw.data as Record<string, unknown> | undefined) || raw;
+        const id = user?.id ?? user?.userId ?? user?.clerkId;
+        if (!id) {
+          await Swal.fire({
+            icon: 'error',
+            title: 'Could not create user',
+            text: 'The server did not return a valid user. Please try again.',
+            confirmButtonColor: '#000',
+          });
+          return;
+        }
+        const fullName = `${firstName} ${lastName}`.trim();
+        setSelectedUser({ id: String(id), name: fullName, email });
+        setShowAddUserForm(false);
+        resetAddUserForm();
+        await Swal.fire({
+          icon: 'success',
+          title: 'User created',
+          text: `${fullName} has been added.`,
+          confirmButtonColor: '#10B981',
+          timer: 1800,
+          showConfirmButton: false,
+        });
+      } else {
+        const errData = res.data as { message?: string } | undefined;
+        const message = errData?.message || res.error || 'Failed to create user. Please try again.';
+        await Swal.fire({
+          icon: 'error',
+          title: 'Could not create user',
+          text: message,
+          confirmButtonColor: '#000',
+        });
+      }
+    } catch (e) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Could not create user',
+        text: e instanceof Error ? e.message : 'Something went wrong. Please try again.',
+        confirmButtonColor: '#000',
+      });
+    } finally {
+      setIsCreatingUser(false);
+    }
+  };
 
   const [currency, setCurrency] = useState<string>('');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -1237,81 +1345,234 @@ function AddListingPage() {
       {/* User Selection Screen */}
       {showIntro && !selectedUser ? (
         <main className="flex-1 pt-24 lg:pt-28 pb-24 flex items-start justify-center">
-          <div className="w-full max-w-[520px] px-4 mx-auto" ref={userSearchRef}>
+          <div className="w-full max-w-[680px] px-4 mx-auto" ref={userSearchRef}>
             <div className="bg-white rounded-3xl border border-[#E8EAED] shadow-sm p-8 lg:p-10">
-              <div className="flex flex-col items-center gap-2 mb-8">
-                <div className="w-16 h-16 bg-[#FCC519]/10 rounded-2xl flex items-center justify-center mb-2">
-                  <User className="w-8 h-8 text-[#FCC519]" />
-                </div>
-                <h2 className="text-2xl font-bold text-[#1D242B] text-center">
-                  Who is this listing for?
-                </h2>
-                <p className="text-sm text-[#647C94] text-center">
-                  Search and select the property owner to create a listing on their behalf.
-                </p>
-              </div>
+              {!showAddUserForm ? (
+                <>
+                  <div className="flex flex-col items-center gap-2 mb-8">
+                    <div className="w-16 h-16 bg-[#FCC519]/10 rounded-2xl flex items-center justify-center mb-2">
+                      <User className="w-8 h-8 text-[#FCC519]" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-[#1D242B] text-center">
+                      Who is this listing for?
+                    </h2>
+                    <p className="text-sm text-[#647C94] text-center">
+                      Search and select the property owner to create a listing on their behalf.
+                    </p>
+                  </div>
 
-              <div className="relative">
-                <div className="flex items-center px-4 py-4 bg-[#F8F9FA] border-2 border-[#E5E9EE] rounded-2xl focus-within:border-[#FCC519] focus-within:bg-white transition-all">
-                  <Search className="w-5 h-5 text-[#9CA3AF] flex-shrink-0 mr-3" />
-                  <input
-                    type="text"
-                    value={userSearchQuery}
-                    onChange={(e) => setUserSearchQuery(e.target.value)}
-                    placeholder="Search by name or email..."
-                    autoFocus
-                    className="flex-1 text-base text-[#1D242B] placeholder:text-[#B0B8C1] outline-none bg-transparent"
-                  />
-                  {isSearchingUsers && (
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-[#FCC519] border-t-transparent ml-2" />
+                  <div className="relative">
+                    <div className="flex items-center px-4 py-4 bg-[#F8F9FA] border-2 border-[#E5E9EE] rounded-2xl focus-within:border-[#FCC519] focus-within:bg-white transition-all">
+                      <Search className="w-5 h-5 text-[#9CA3AF] flex-shrink-0 mr-3" />
+                      <input
+                        type="text"
+                        value={userSearchQuery}
+                        onChange={(e) => setUserSearchQuery(e.target.value)}
+                        placeholder="Search by name or email..."
+                        autoFocus
+                        className="flex-1 text-base text-[#1D242B] placeholder:text-[#B0B8C1] outline-none bg-transparent"
+                      />
+                      {isSearchingUsers && (
+                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-[#FCC519] border-t-transparent ml-2" />
+                      )}
+                    </div>
+
+                    {showUserDropdown && userSearchResults.length > 0 && (
+                      <div className="absolute z-50 w-full mt-2 bg-white border border-[#E5E9EE] rounded-2xl shadow-xl max-h-[280px] overflow-y-auto">
+                        {userSearchResults.map((user: { id: string | number; name?: string; firstName?: string; lastName?: string; email?: string }) => (
+                          <button
+                            key={user.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedUser({
+                                id: String(user.id),
+                                name: user.name || (user.firstName || user.lastName)
+                                  ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
+                                  : user.email || 'Unknown',
+                                email: user.email || '',
+                              });
+                              setShowUserDropdown(false);
+                              setUserSearchQuery('');
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[#F8F9FA] transition-colors text-left first:rounded-t-2xl last:rounded-b-2xl"
+                          >
+                            <div className="w-10 h-10 bg-[#F0F2F5] rounded-full flex items-center justify-center flex-shrink-0">
+                              <User className="w-5 h-5 text-[#5E5E5E]" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-[#1D242B] truncate">
+                                {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown'}
+                              </p>
+                              <p className="text-xs text-[#9CA3AF] truncate">{user.email || ''}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {showUserDropdown && userSearchResults.length === 0 && !isSearchingUsers && userSearchQuery.length >= 2 && (
+                      <div className="absolute z-50 w-full mt-2 bg-white border border-[#E5E9EE] rounded-2xl shadow-xl px-4 py-8 text-center">
+                        <User className="w-8 h-8 text-[#D1D5DB] mx-auto mb-2" />
+                        <p className="text-sm text-[#9CA3AF]">No users found</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {userSearchQuery.length === 0 && (
+                    <p className="text-xs text-[#B0B8C1] text-center mt-4">
+                      Start typing at least 2 characters to search
+                    </p>
                   )}
-                </div>
 
-                {showUserDropdown && userSearchResults.length > 0 && (
-                  <div className="absolute z-50 w-full mt-2 bg-white border border-[#E5E9EE] rounded-2xl shadow-xl max-h-[280px] overflow-y-auto">
-                    {userSearchResults.map((user: any) => (
+                  {/* Divider */}
+                  <div className="flex items-center gap-4 my-6">
+                    <div className="flex-1 h-px bg-[#E5E9EE]" />
+                    <span className="text-xs text-[#9CA3AF] uppercase tracking-wider">or</span>
+                    <div className="flex-1 h-px bg-[#E5E9EE]" />
+                  </div>
+
+                  {/* Add new user button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetAddUserForm();
+                      setShowAddUserForm(true);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3.5 border-2 border-dashed border-[#E5E9EE] rounded-2xl text-sm font-semibold text-[#1D242B] hover:border-[#FCC519] hover:bg-[#FCC519]/5 transition-colors"
+                  >
+                    <UserPlus className="w-5 h-5 text-[#FCC519]" />
+                    Add new user
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3 mb-8">
+                    <button
+                      type="button"
+                      title="Back to search"
+                      onClick={() => {
+                        setShowAddUserForm(false);
+                        resetAddUserForm();
+                      }}
+                      disabled={isCreatingUser}
+                      className="w-9 h-9 rounded-full bg-[#F8F9FA] hover:bg-[#F0F2F5] flex items-center justify-center transition-colors disabled:opacity-50"
+                    >
+                      <ArrowLeft className="w-5 h-5 text-[#1D242B]" />
+                    </button>
+                    <div>
+                      <h2 className="text-xl font-bold text-[#1D242B]">Add new user</h2>
+                      <p className="text-xs text-[#647C94]">Create a property owner account</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-semibold text-[#1D242B]">First name<span className="text-red-500 ml-1">*</span></label>
+                        <input
+                          type="text"
+                          value={newUserForm.firstName}
+                          disabled={isCreatingUser}
+                          onChange={(e) => setNewUserForm({ ...newUserForm, firstName: e.target.value })}
+                          placeholder="John"
+                          className={`px-4 py-3 bg-[#F8F9FA] border-2 rounded-xl text-sm text-[#1D242B] placeholder:text-[#B0B8C1] outline-none focus:border-[#FCC519] focus:bg-white transition-colors ${
+                            newUserErrors.firstName ? 'border-red-400' : 'border-[#E5E9EE]'
+                          }`}
+                        />
+                        {newUserErrors.firstName && (
+                          <p className="text-xs text-red-500">{newUserErrors.firstName}</p>
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-semibold text-[#1D242B]">Last name<span className="text-red-500 ml-1">*</span></label>
+                        <input
+                          type="text"
+                          value={newUserForm.lastName}
+                          disabled={isCreatingUser}
+                          onChange={(e) => setNewUserForm({ ...newUserForm, lastName: e.target.value })}
+                          placeholder="Doe"
+                          className={`px-4 py-3 bg-[#F8F9FA] border-2 rounded-xl text-sm text-[#1D242B] placeholder:text-[#B0B8C1] outline-none focus:border-[#FCC519] focus:bg-white transition-colors ${
+                            newUserErrors.lastName ? 'border-red-400' : 'border-[#E5E9EE]'
+                          }`}
+                        />
+                        {newUserErrors.lastName && (
+                          <p className="text-xs text-red-500">{newUserErrors.lastName}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-semibold text-[#1D242B]">Email<span className="text-red-500 ml-1">*</span></label>
+                      <input
+                        type="email"
+                        value={newUserForm.email}
+                        disabled={isCreatingUser}
+                        onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })}
+                        placeholder="user@example.com"
+                        className={`px-4 py-3 bg-[#F8F9FA] border-2 rounded-xl text-sm text-[#1D242B] placeholder:text-[#B0B8C1] outline-none focus:border-[#FCC519] focus:bg-white transition-colors ${
+                          newUserErrors.email ? 'border-red-400' : 'border-[#E5E9EE]'
+                        }`}
+                      />
+                      {newUserErrors.email && (
+                        <p className="text-xs text-red-500">{newUserErrors.email}</p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-semibold text-[#1D242B]">Phone<span className="text-red-500 ml-1">*</span></label>
+                      <input
+                        type="tel"
+                        dir="ltr"
+                        value={newUserForm.phone}
+                        disabled={isCreatingUser}
+                        onKeyDown={blockArabicNumeralKey}
+                        onChange={(e) => {
+                          const cleaned = stripArabicNumerals(e.target.value).replace(/[^0-9+]/g, '');
+                          setNewUserForm({ ...newUserForm, phone: cleaned });
+                        }}
+                        placeholder="+201234567890"
+                        className={`px-4 py-3 bg-[#F8F9FA] border-2 rounded-xl text-sm text-[#1D242B] placeholder:text-[#B0B8C1] outline-none focus:border-[#FCC519] focus:bg-white transition-colors ${
+                          newUserErrors.phone ? 'border-red-400' : 'border-[#E5E9EE]'
+                        }`}
+                      />
+                      {newUserErrors.phone && (
+                        <p className="text-xs text-red-500">{newUserErrors.phone}</p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-3 mt-2">
                       <button
-                        key={user.id}
                         type="button"
                         onClick={() => {
-                          setSelectedUser({
-                            id: String(user.id),
-                            name: user.name || (user.firstName || user.lastName)
-                              ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
-                              : user.email || 'Unknown',
-                            email: user.email || '',
-                          });
-                          setShowUserDropdown(false);
-                          setUserSearchQuery('');
+                          setShowAddUserForm(false);
+                          resetAddUserForm();
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[#F8F9FA] transition-colors text-left first:rounded-t-2xl last:rounded-b-2xl"
+                        disabled={isCreatingUser}
+                        className="flex-1 py-3 rounded-xl text-sm font-semibold text-[#1D242B] bg-[#F0F2F5] hover:bg-[#E5E9EE] transition-colors disabled:opacity-50"
                       >
-                        <div className="w-10 h-10 bg-[#F0F2F5] rounded-full flex items-center justify-center flex-shrink-0">
-                          <User className="w-5 h-5 text-[#5E5E5E]" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-[#1D242B] truncate">
-                            {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown'}
-                          </p>
-                          <p className="text-xs text-[#9CA3AF] truncate">{user.email || ''}</p>
-                        </div>
+                        Cancel
                       </button>
-                    ))}
+                      <button
+                        type="button"
+                        onClick={handleCreateUser}
+                        disabled={isCreatingUser}
+                        className="flex-1 py-3 rounded-xl text-sm font-semibold text-[#1D242B] bg-[#FCC519] hover:bg-[#f0bb0e] transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+                      >
+                        {isCreatingUser ? (
+                          <>
+                            <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            Creating...
+                          </>
+                        ) : (
+                          'Create user'
+                        )}
+                      </button>
+                    </div>
                   </div>
-                )}
-
-                {showUserDropdown && userSearchResults.length === 0 && !isSearchingUsers && userSearchQuery.length >= 2 && (
-                  <div className="absolute z-50 w-full mt-2 bg-white border border-[#E5E9EE] rounded-2xl shadow-xl px-4 py-8 text-center">
-                    <User className="w-8 h-8 text-[#D1D5DB] mx-auto mb-2" />
-                    <p className="text-sm text-[#9CA3AF]">No users found</p>
-                  </div>
-                )}
-              </div>
-
-              {userSearchQuery.length === 0 && (
-                <p className="text-xs text-[#B0B8C1] text-center mt-4">
-                  Start typing at least 2 characters to search
-                </p>
+                </>
               )}
             </div>
           </div>

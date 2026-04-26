@@ -65,6 +65,20 @@ export const UsersAPI = {
       headers: { Authorization: `Bearer ${token}` },
     });
   },
+
+  upsertClerk(
+    payload: { email: string; firstName: string; lastName: string; phone: string },
+    token: string
+  ) {
+    return request('/api/reservationAdmin/users/upsert-clerk', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
 };
 
 export const LookupsAPI = {
