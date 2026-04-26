@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Counter } from './Counter';
 import { PropertyFormData } from '../types';
 import { Users, DoorOpen, BedDouble, Bath, Expand } from 'lucide-react';
+import { stripArabicNumerals, blockArabicNumeralKey } from '@/lib/utils/numeric-input';
 
 interface BasicsStepProps {
   listing: PropertyFormData;
@@ -46,7 +47,7 @@ export function BasicsStep({
   const maxBathrooms = Math.min(5, bedrooms + 1);
 
   const minAreaSize = 25;
-  const maxAreaSize = 300;
+  const maxAreaSize = 600;
 
   // --- Smart change handler: cascades adjustments in one update ---
   const handleChange = (field: string, delta: number) => {
@@ -180,9 +181,7 @@ export function BasicsStep({
             max={maxAreaSize}
             disabled={readOnly}
             onChange={(e) => {
-              const raw = e.target.value.replace(/[\u0660-\u0669\u06F0-\u06F9]/g, (d) =>
-                String(d.charCodeAt(0) & 0xf)
-              );
+              const raw = stripArabicNumerals(e.target.value);
               if (raw === '') { setAreaInput(''); return; }
               const num = parseInt(raw, 10);
               if (isNaN(num) || num < 0) return;
@@ -190,6 +189,7 @@ export function BasicsStep({
               setAreaInput(String(num));
             }}
             onKeyDown={(e) => {
+              blockArabicNumeralKey(e);
               if (e.key === 'Enter') {
                 e.currentTarget.blur();
               }

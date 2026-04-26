@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { PropertyFormData } from '../types';
 import { Star, Pencil } from 'lucide-react';
+import { stripArabicNumerals, blockArabicNumeralKey } from '@/lib/utils/numeric-input';
 
 interface PricingStepProps {
   listing: PropertyFormData;
@@ -89,8 +90,9 @@ export const PricingStep = ({
                 value={listing.basePrice || ''}
                 size={Math.max(String(listing.basePrice || '0').length, 1)}
                 disabled={readOnly}
+                onKeyDown={blockArabicNumeralKey}
                 onChange={(e) => {
-                  let val = parseInt(e.target.value);
+                  let val = parseInt(stripArabicNumerals(e.target.value));
                   if (isNaN(val)) val = 0;
                   if (val > maxBasePrice) val = maxBasePrice;
                   setListing({ ...listing, basePrice: val });
@@ -149,8 +151,9 @@ export const PricingStep = ({
                   title="Cleaning fee amount"
                   value={listing.cleaningFee || ''}
                   disabled={readOnly}
+                  onKeyDown={blockArabicNumeralKey}
                   onChange={(e) => {
-                    let val = parseInt(e.target.value);
+                    let val = parseInt(stripArabicNumerals(e.target.value));
                     if (isNaN(val)) val = 0;
                     const cap = Math.min(maxCleaningFee, listing.basePrice || maxCleaningFee);
                     if (val > cap) val = cap;
@@ -198,8 +201,9 @@ export const PricingStep = ({
                   title="Electrical fee amount"
                   value={listing.electricalFee || ''}
                   disabled={readOnly}
+                  onKeyDown={blockArabicNumeralKey}
                   onChange={(e) => {
-                    let val = parseInt(e.target.value);
+                    let val = parseInt(stripArabicNumerals(e.target.value));
                     if (isNaN(val)) val = 0;
                     if (val > maxCleaningFee) val = maxCleaningFee;
                     setListing({ ...listing, electricalFee: val });
@@ -236,8 +240,9 @@ export const PricingStep = ({
                   title="Water fee amount"
                   value={listing.waterFee || ''}
                   disabled={readOnly}
+                  onKeyDown={blockArabicNumeralKey}
                   onChange={(e) => {
-                    let val = parseInt(e.target.value);
+                    let val = parseInt(stripArabicNumerals(e.target.value));
                     if (isNaN(val)) val = 0;
                     if (val > maxCleaningFee) val = maxCleaningFee;
                     setListing({ ...listing, waterFee: val });

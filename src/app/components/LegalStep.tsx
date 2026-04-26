@@ -2,6 +2,7 @@ import { PropertyFormData } from '../types';
 import { Zap, AlertCircle, Phone } from 'lucide-react';
 import { useMemo } from 'react';
 import { countries as countryList } from '@/lib/countries';
+import { blockArabicNumeralKey } from '@/lib/utils/numeric-input';
 
 interface LegalStepProps {
   listing: PropertyFormData;
@@ -56,6 +57,7 @@ export const LegalStep = ({
               type="tel"
               dir="ltr"
               value={listing.phoneNumber}
+              onKeyDown={blockArabicNumeralKey}
               onChange={(e) => {
                 const val = e.target.value.replace(/[^0-9]/g, '');
                 !readOnly && setListing({ ...listing, phoneNumber: val });
@@ -94,6 +96,7 @@ export const LegalStep = ({
               type="tel"
               dir="ltr"
               value={listing.emergencyPhoneNumber}
+              onKeyDown={blockArabicNumeralKey}
               onChange={(e) => {
                 const val = e.target.value.replace(/[^0-9]/g, '');
                 !readOnly && setListing({ ...listing, emergencyPhoneNumber: val });

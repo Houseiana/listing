@@ -7,6 +7,7 @@ import {
   CalendarDays,
   Check,
 } from 'lucide-react';
+import { stripArabicNumerals, blockArabicNumeralKey } from '@/lib/utils/numeric-input';
 
 interface CancellationPolicyStepProps {
   listing: PropertyFormData;
@@ -202,8 +203,9 @@ export function CancellationPolicyStep({
                 max="30"
                 title="Free cancellation days"
                 value={listing.cancellationPolicy.freeCancellationDays || ''}
+                onKeyDown={blockArabicNumeralKey}
                 onChange={(e) => {
-                  const raw = e.target.value;
+                  const raw = stripArabicNumerals(e.target.value);
                   if (raw === '') {
                     setListing({ ...listing, cancellationPolicy: { ...listing.cancellationPolicy!, freeCancellationDays: '' as any } });
                     return;
@@ -214,7 +216,7 @@ export function CancellationPolicyStep({
                   setListing({ ...listing, cancellationPolicy: { ...listing.cancellationPolicy!, freeCancellationDays: clamped } });
                 }}
                 onBlur={(e) => {
-                  const num = parseInt(e.target.value, 10);
+                  const num = parseInt(stripArabicNumerals(e.target.value), 10);
                   const clamped = isNaN(num) || num < 5 ? 5 : Math.min(num, 30);
                   setListing({ ...listing, cancellationPolicy: { ...listing.cancellationPolicy!, freeCancellationDays: clamped } });
                 }}

@@ -3,6 +3,7 @@ import { PropertyFormData } from '../types';
 import { MapPin, Info, Check } from 'lucide-react';
 import { GoogleMap, Marker } from '@react-google-maps/api';
 import { useCities, useCountries, useStates, useVillages } from '@/hooks/use-locations';
+import { stripArabicNumerals, blockArabicNumeralKey } from '@/lib/utils/numeric-input';
 
 interface LocationStepProps {
   listing: PropertyFormData;
@@ -596,10 +597,12 @@ export const LocationStep = ({
               </label>
               <input
                 type="text"
+                inputMode="numeric"
                 value={listing.buildingNumber}
                 disabled={readOnly}
+                onKeyDown={blockArabicNumeralKey}
                 onChange={(e) =>
-                  setListing({ ...listing, buildingNumber: e.target.value })
+                  setListing({ ...listing, buildingNumber: stripArabicNumerals(e.target.value) })
                 }
                 placeholder="e.g. 12"
                 className={`w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none text-lg ${
@@ -615,8 +618,9 @@ export const LocationStep = ({
                 type="number"
                 value={listing.floorNumber}
                 disabled={readOnly}
+                onKeyDown={blockArabicNumeralKey}
                 onChange={(e) =>
-                  setListing({ ...listing, floorNumber: e.target.value })
+                  setListing({ ...listing, floorNumber: stripArabicNumerals(e.target.value) })
                 }
                 placeholder="e.g. 3"
                 className={`w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none text-lg ${
@@ -652,12 +656,14 @@ export const LocationStep = ({
             </label>
             <input
               type="text"
+              inputMode="numeric"
               value={listing.postalCode}
               disabled={readOnly}
+              onKeyDown={blockArabicNumeralKey}
               onChange={(e) =>
                 setListing({
                   ...listing,
-                  postalCode: e.target.value,
+                  postalCode: stripArabicNumerals(e.target.value),
                 })
               }
               placeholder="Enter postal code"
