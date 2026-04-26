@@ -3,7 +3,12 @@ import { PropertyFormData } from '../types';
 import { MapPin, Info, Check } from 'lucide-react';
 import { GoogleMap, Marker } from '@react-google-maps/api';
 import { useCities, useCountries, useStates, useVillages } from '@/hooks/use-locations';
-import { stripArabicNumerals, blockArabicNumeralKey } from '@/lib/utils/numeric-input';
+import {
+  stripArabicNumerals,
+  blockArabicNumeralKey,
+  stripNegativeSign,
+  blockNonPositiveNumeralKey,
+} from '@/lib/utils/numeric-input';
 
 interface LocationStepProps {
   listing: PropertyFormData;
@@ -600,9 +605,12 @@ export const LocationStep = ({
                 inputMode="numeric"
                 value={listing.buildingNumber}
                 disabled={readOnly}
-                onKeyDown={blockArabicNumeralKey}
+                onKeyDown={blockNonPositiveNumeralKey}
                 onChange={(e) =>
-                  setListing({ ...listing, buildingNumber: stripArabicNumerals(e.target.value) })
+                  setListing({
+                    ...listing,
+                    buildingNumber: stripNegativeSign(stripArabicNumerals(e.target.value)),
+                  })
                 }
                 placeholder="e.g. 12"
                 className={`w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none text-lg ${
@@ -616,11 +624,15 @@ export const LocationStep = ({
               </label>
               <input
                 type="number"
+                min="0"
                 value={listing.floorNumber}
                 disabled={readOnly}
-                onKeyDown={blockArabicNumeralKey}
+                onKeyDown={blockNonPositiveNumeralKey}
                 onChange={(e) =>
-                  setListing({ ...listing, floorNumber: stripArabicNumerals(e.target.value) })
+                  setListing({
+                    ...listing,
+                    floorNumber: stripNegativeSign(stripArabicNumerals(e.target.value)),
+                  })
                 }
                 placeholder="e.g. 3"
                 className={`w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none text-lg ${
@@ -636,8 +648,11 @@ export const LocationStep = ({
                 type="text"
                 value={listing.unitNumber}
                 disabled={readOnly}
+                onKeyDown={(e) => {
+                  if (e.key === '-' || e.key === '−') e.preventDefault();
+                }}
                 onChange={(e) =>
-                  setListing({ ...listing, unitNumber: e.target.value })
+                  setListing({ ...listing, unitNumber: stripNegativeSign(e.target.value) })
                 }
                 placeholder="e.g. 4A"
                 className={`w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none text-lg ${
