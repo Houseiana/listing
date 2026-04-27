@@ -47,7 +47,7 @@ export function BasicsStep({
   const maxBathrooms = Math.min(5, bedrooms + 1);
 
   const minAreaSize = 25;
-  const maxAreaSize = 600;
+  const maxAreaSize = 3000;
 
   // --- Smart change handler: cascades adjustments in one update ---
   const handleChange = (field: string, delta: number) => {
