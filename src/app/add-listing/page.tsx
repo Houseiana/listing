@@ -9,6 +9,7 @@ import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 import Swal from 'sweetalert2';
 import { MapPin, Navigation, PenLine, Search, User, UserPlus, X, ArrowLeft } from 'lucide-react';
 import { stripArabicNumerals, blockArabicNumeralKey } from '@/lib/utils/numeric-input';
+import { countries as dialCountries } from '@/lib/countries';
 import { PropertyFormData } from '@/app/types';
 import {
   PropertyTypeStep,
@@ -72,7 +73,11 @@ function AddListingPage() {
     email: '',
     phone: '',
   });
+  const [newUserDialCode, setNewUserDialCode] = useState<string>('+20');
   const [newUserErrors, setNewUserErrors] = useState<Record<string, string>>({});
+  const [showDialDropdown, setShowDialDropdown] = useState(false);
+  const [dialSearchQuery, setDialSearchQuery] = useState('');
+  const dialDropdownRef = useRef<HTMLDivElement>(null);
 
   // Close user dropdown on outside click
   useEffect(() => {
@@ -80,10 +85,24 @@ function AddListingPage() {
       if (userSearchRef.current && !userSearchRef.current.contains(e.target as Node)) {
         setShowUserDropdown(false);
       }
+      if (dialDropdownRef.current && !dialDropdownRef.current.contains(e.target as Node)) {
+        setShowDialDropdown(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const filteredDialCountries = (() => {
+    const q = dialSearchQuery.trim().toLowerCase();
+    if (!q) return dialCountries;
+    return dialCountries.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        c.code.toLowerCase().includes(q) ||
+        c.dialCode.includes(q)
+    );
+  })();
 
   // Debounced user search
   const searchUsers = useCallback(async (query: string) => {
@@ -117,6 +136,7 @@ function AddListingPage() {
 
   const resetAddUserForm = () => {
     setNewUserForm({ firstName: '', lastName: '', email: '', phone: '' });
+    setNewUserDialCode('+20');
     setNewUserErrors({});
   };
 
@@ -160,7 +180,7 @@ function AddListingPage() {
       }
 
       const res = await UsersAPI.upsertClerk(
-        { email, firstName, lastName, phone },
+        { email, firstName, lastName, phone: `${newUserDialCode}${phone}` },
         token
       );
 
@@ -1520,21 +1540,84 @@ function AddListingPage() {
 
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs font-semibold text-[#1D242B]">Phone<span className="text-red-500 ml-1">*</span></label>
-                      <input
-                        type="tel"
-                        dir="ltr"
-                        value={newUserForm.phone}
-                        disabled={isCreatingUser}
-                        onKeyDown={blockArabicNumeralKey}
-                        onChange={(e) => {
-                          const cleaned = stripArabicNumerals(e.target.value).replace(/[^0-9+]/g, '');
-                          setNewUserForm({ ...newUserForm, phone: cleaned });
-                        }}
-                        placeholder="+201234567890"
-                        className={`px-4 py-3 bg-[#F8F9FA] border-2 rounded-xl text-sm text-[#1D242B] placeholder:text-[#B0B8C1] outline-none focus:border-[#FCC519] focus:bg-white transition-colors ${
-                          newUserErrors.phone ? 'border-red-400' : 'border-[#E5E9EE]'
-                        }`}
-                      />
+                      <div className="flex items-stretch">
+                        <div ref={dialDropdownRef} className="relative">
+                          <button
+                            type="button"
+                            aria-label="Country code"
+                            disabled={isCreatingUser}
+                            onClick={() => {
+                              setShowDialDropdown((v) => !v);
+                              setDialSearchQuery('');
+                            }}
+                            className={`h-full px-3 py-3 bg-[#F0F2F5] border-2 border-e-0 rounded-s-xl text-sm font-medium text-[#1D242B] outline-none focus:border-[#FCC519] cursor-pointer disabled:cursor-not-allowed flex items-center gap-1 whitespace-nowrap ${
+                              newUserErrors.phone ? 'border-red-400' : 'border-[#E5E9EE]'
+                            }`}
+                          >
+                            <span>{dialCountries.find((c) => c.dialCode === newUserDialCode)?.code ?? ''}</span>
+                            <span dir="ltr">{newUserDialCode}</span>
+                            <svg className="w-3 h-3 text-[#5E5E5E]" viewBox="0 0 12 12" fill="none">
+                              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </button>
+                          {showDialDropdown && (
+                            <div className="absolute z-20 mt-1 inset-s-0 w-72 bg-white border-2 border-[#E5E9EE] rounded-xl shadow-lg overflow-hidden">
+                              <div className="p-2 border-b border-[#E5E9EE]">
+                                <div className="relative">
+                                  <Search className="absolute inset-s-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#B0B8C1]" />
+                                  <input
+                                    type="text"
+                                    autoFocus
+                                    value={dialSearchQuery}
+                                    onChange={(e) => setDialSearchQuery(e.target.value)}
+                                    placeholder="Search country or code"
+                                    className="w-full ps-9 pe-3 py-2 bg-[#F8F9FA] border border-[#E5E9EE] rounded-lg text-sm text-[#1D242B] placeholder:text-[#B0B8C1] outline-none focus:border-[#FCC519]"
+                                  />
+                                </div>
+                              </div>
+                              <ul className="max-h-60 overflow-y-auto py-1">
+                                {filteredDialCountries.length === 0 ? (
+                                  <li className="px-3 py-2 text-sm text-[#5E5E5E]">No matches</li>
+                                ) : (
+                                  filteredDialCountries.map((c) => (
+                                    <li key={c.code}>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setNewUserDialCode(c.dialCode);
+                                          setShowDialDropdown(false);
+                                          setDialSearchQuery('');
+                                        }}
+                                        className={`w-full px-3 py-2 text-sm text-start flex items-center justify-between gap-3 hover:bg-[#F8F9FA] transition-colors ${
+                                          c.dialCode === newUserDialCode ? 'bg-[#FCF9EE] text-[#1D242B] font-semibold' : 'text-[#1D242B]'
+                                        }`}
+                                      >
+                                        <span className="truncate">{c.name}</span>
+                                        <span className="text-[#5E5E5E] shrink-0" dir="ltr">{c.code} {c.dialCode}</span>
+                                      </button>
+                                    </li>
+                                  ))
+                                )}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                        <input
+                          type="tel"
+                          dir="ltr"
+                          value={newUserForm.phone}
+                          disabled={isCreatingUser}
+                          onKeyDown={blockArabicNumeralKey}
+                          onChange={(e) => {
+                            const cleaned = stripArabicNumerals(e.target.value).replace(/[^0-9]/g, '');
+                            setNewUserForm({ ...newUserForm, phone: cleaned });
+                          }}
+                          placeholder="1234567890"
+                          className={`flex-1 px-4 py-3 bg-[#F8F9FA] border-2 rounded-e-xl text-sm text-[#1D242B] placeholder:text-[#B0B8C1] outline-none focus:border-[#FCC519] focus:bg-white transition-colors ${
+                            newUserErrors.phone ? 'border-red-400' : 'border-[#E5E9EE]'
+                          }`}
+                        />
+                      </div>
                       {newUserErrors.phone && (
                         <p className="text-xs text-red-500">{newUserErrors.phone}</p>
                       )}
