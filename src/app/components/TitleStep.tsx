@@ -63,13 +63,13 @@ export const TitleStep = ({
           <textarea
             value={listing.title}
             onChange={(e) =>
-              setListing({ ...listing, title: e.target.value.replace(/\s{2,}/g, ' ').slice(0, 32) })
+              setListing({ ...listing, title: e.target.value.replace(/\s{2,}/g, ' ').slice(0, 60) })
             }
             onBlur={() =>
               setListing({ ...listing, title: listing.title.trim() })
             }
             placeholder="Give your property a catchy title"
-            maxLength={32}
+            maxLength={60}
             rows={4}
             className={`w-full px-5 py-5 border rounded-[12px] focus:ring-2 focus:ring-[#FCC519] focus:border-transparent outline-none text-base resize-none ${
               hasTitleError
@@ -78,7 +78,7 @@ export const TitleStep = ({
             }`}
           />
           <span className="absolute bottom-4 left-5 text-xl font-medium text-[#2F3A45]">
-            {listing.title.length}/32
+            {listing.title.length}/60
           </span>
         </div>
       </div>
