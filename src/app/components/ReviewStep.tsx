@@ -17,6 +17,7 @@ import {
   Tag,
   DoorOpen,
 } from 'lucide-react';
+import { useFileUrls } from '@/hooks/use-file-urls';
 
 interface ReviewStepProps {
   listing: PropertyFormData;
@@ -24,6 +25,9 @@ interface ReviewStepProps {
 }
 
 export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
+  const [firstPhotoUrl] = useFileUrls(
+    listing.photos.length > 0 ? [listing.photos[0]] : []
+  );
   return (
   <div className="flex flex-col gap-[30px]">
     {/* Header */}
@@ -38,11 +42,7 @@ export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
         <div className="w-full h-[280px] rounded-[21px] overflow-hidden bg-gray-100">
           {listing.photos.length > 0 ? (
             <img
-              src={
-                listing.photos[0] instanceof File
-                  ? URL.createObjectURL(listing.photos[0])
-                  : (listing.photos[0] as string)
-              }
+              src={firstPhotoUrl ?? ''}
               alt="Cover Photo"
               className="w-full h-full object-cover"
             />

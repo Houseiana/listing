@@ -1,6 +1,7 @@
 import { PropertyFormData } from '../types';
 import { Camera, Trash2, ImagePlus, Image as ImageIcon } from 'lucide-react';
 import { RequiredFieldLabel, ValidationError } from '@/components/ui/ValidationError';
+import { useFileUrls } from '@/hooks/use-file-urls';
 
 interface PhotosStepProps {
   listing: PropertyFormData;
@@ -37,11 +38,11 @@ export const PhotosStep = ({
   const hasCoverError = hasAttemptedNext && validationErrors.coverPhoto;
   const photosCount = listing.photos.length;
 
-  const coverPhotoSrc = listing.coverPhoto
-    ? listing.coverPhoto instanceof File
-      ? URL.createObjectURL(listing.coverPhoto)
-      : listing.coverPhoto
-    : null;
+  const photoUrls = useFileUrls(listing.photos);
+  const [coverUrl] = useFileUrls(
+    listing.coverPhoto ? [listing.coverPhoto] : []
+  );
+  const coverPhotoSrc = coverUrl || null;
 
   return (
     <div className="space-y-8">
@@ -176,11 +177,7 @@ export const PhotosStep = ({
           {/* Main cover photo */}
           <div className="relative w-full h-[400px] rounded-2xl overflow-hidden border-2 border-[#E5E9EE]">
             <img
-              src={
-                listing.photos[0] instanceof File
-                  ? URL.createObjectURL(listing.photos[0])
-                  : (listing.photos[0] as string)
-              }
+              src={photoUrls[0] ?? ''}
               alt="Main photo"
               className="w-full h-full object-cover"
             />
@@ -225,11 +222,7 @@ export const PhotosStep = ({
                 className="relative h-[190px] rounded-2xl overflow-hidden"
               >
                 <img
-                  src={
-                    photo instanceof File
-                      ? URL.createObjectURL(photo)
-                      : (photo as string)
-                  }
+                  src={photoUrls[index + 1] ?? ''}
                   alt={`Photo ${index + 2}`}
                   className="w-full h-full object-cover"
                 />
