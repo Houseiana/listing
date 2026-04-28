@@ -7,7 +7,7 @@ import { useAuth, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 import Swal from 'sweetalert2';
-import { MapPin, Navigation, PenLine, Search, User, UserPlus, X, ArrowLeft } from 'lucide-react';
+import { MapPin, Navigation, PenLine, Search, User, UserPlus, X, ArrowLeft, Eye, EyeOff, Mail } from 'lucide-react';
 import { stripArabicNumerals, blockArabicNumeralKey } from '@/lib/utils/numeric-input';
 import { countries as dialCountries } from '@/lib/countries';
 import { PropertyFormData } from '@/app/types';
@@ -67,16 +67,19 @@ function AddListingPage() {
   // Add new user form state
   const [showAddUserForm, setShowAddUserForm] = useState(false);
   const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [isInvitingUser, setIsInvitingUser] = useState(false);
   const [newUserForm, setNewUserForm] = useState({
     firstName: '',
     lastName: '',
     email: '',
+    password: '',
     phone: '',
   });
   const [newUserDialCode, setNewUserDialCode] = useState<string>('+20');
   const [newUserErrors, setNewUserErrors] = useState<Record<string, string>>({});
   const [showDialDropdown, setShowDialDropdown] = useState(false);
   const [dialSearchQuery, setDialSearchQuery] = useState('');
+  const [showNewUserPassword, setShowNewUserPassword] = useState(false);
   const dialDropdownRef = useRef<HTMLDivElement>(null);
 
   // Close user dropdown on outside click
@@ -135,9 +138,10 @@ function AddListingPage() {
   }, [userSearchQuery, searchUsers]);
 
   const resetAddUserForm = () => {
-    setNewUserForm({ firstName: '', lastName: '', email: '', phone: '' });
+    setNewUserForm({ firstName: '', lastName: '', email: '', password: '', phone: '' });
     setNewUserDialCode('+20');
     setNewUserErrors({});
+    setShowNewUserPassword(false);
   };
 
   const handleCreateUser = async () => {
@@ -145,6 +149,7 @@ function AddListingPage() {
     const firstName = newUserForm.firstName.trim();
     const lastName = newUserForm.lastName.trim();
     const email = newUserForm.email.trim();
+    const password = newUserForm.password;
     const phone = newUserForm.phone.trim();
 
     if (!firstName) errors.firstName = 'First name is required';
@@ -153,6 +158,11 @@ function AddListingPage() {
       errors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       errors.email = 'Enter a valid email address';
+    }
+    if (!password) {
+      errors.password = 'Password is required';
+    } else if (password.length < 8) {
+      errors.password = 'Password must be at least 8 characters';
     }
     if (!phone) {
       errors.phone = 'Phone number is required';
@@ -180,7 +190,7 @@ function AddListingPage() {
       }
 
       const res = await UsersAPI.upsertClerk(
-        { email, firstName, lastName, phone: `${newUserDialCode}${phone}` },
+        { email, firstName, lastName, password, countryCode: newUserDialCode, phone },
         token
       );
 
@@ -228,6 +238,72 @@ function AddListingPage() {
       });
     } finally {
       setIsCreatingUser(false);
+    }
+  };
+
+  const handleInviteUser = async () => {
+    const { value: email, isConfirmed } = await Swal.fire<string>({
+      title: 'Invite user',
+      text: 'Enter the email address to send an invitation to.',
+      input: 'email',
+      inputPlaceholder: 'user@example.com',
+      showCancelButton: true,
+      confirmButtonText: 'Send invitation',
+      confirmButtonColor: '#FCC519',
+      cancelButtonColor: '#9CA3AF',
+      inputValidator: (value) => {
+        const v = (value || '').trim();
+        if (!v) return 'Email is required';
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'Enter a valid email address';
+        return null;
+      },
+    });
+
+    if (!isConfirmed || !email) return;
+
+    setIsInvitingUser(true);
+    try {
+      const token = await getToken();
+      if (!token) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Authentication Required',
+          text: 'Please sign in to send invitations.',
+          confirmButtonColor: '#000',
+        });
+        return;
+      }
+
+      const res = await UsersAPI.sendInvitation(email.trim(), token);
+
+      if (res.success) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Invitation sent',
+          text: `An invitation has been sent to ${email.trim()}.`,
+          confirmButtonColor: '#10B981',
+          timer: 1800,
+          showConfirmButton: false,
+        });
+      } else {
+        const errData = res.data as { message?: string } | undefined;
+        const message = errData?.message || res.error || 'Failed to send invitation. Please try again.';
+        await Swal.fire({
+          icon: 'error',
+          title: 'Could not send invitation',
+          text: message,
+          confirmButtonColor: '#000',
+        });
+      }
+    } catch (e) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Could not send invitation',
+        text: e instanceof Error ? e.message : 'Something went wrong. Please try again.',
+        confirmButtonColor: '#000',
+      });
+    } finally {
+      setIsInvitingUser(false);
     }
   };
 
@@ -1451,18 +1527,42 @@ function AddListingPage() {
                     <div className="flex-1 h-px bg-[#E5E9EE]" />
                   </div>
 
-                  {/* Add new user button */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      resetAddUserForm();
-                      setShowAddUserForm(true);
-                    }}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3.5 border-2 border-dashed border-[#E5E9EE] rounded-2xl text-sm font-semibold text-[#1D242B] hover:border-[#FCC519] hover:bg-[#FCC519]/5 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <UserPlus className="w-5 h-5 text-[#FCC519]" />
-                    Add new user
-                  </button>
+                  {/* Add new user / Invite user buttons */}
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        resetAddUserForm();
+                        setShowAddUserForm(true);
+                      }}
+                      disabled={isInvitingUser}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 border-2 border-dashed border-[#E5E9EE] rounded-2xl text-sm font-semibold text-[#1D242B] hover:border-[#FCC519] hover:bg-[#FCC519]/5 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <UserPlus className="w-5 h-5 text-[#FCC519]" />
+                      Add new user
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleInviteUser}
+                      disabled={isInvitingUser}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 border-2 border-dashed border-[#E5E9EE] rounded-2xl text-sm font-semibold text-[#1D242B] hover:border-[#FCC519] hover:bg-[#FCC519]/5 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {isInvitingUser ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="w-5 h-5 text-[#FCC519]" />
+                          Invite user
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </>
               ) : (
                 <>
@@ -1535,6 +1635,35 @@ function AddListingPage() {
                       />
                       {newUserErrors.email && (
                         <p className="text-xs text-red-500">{newUserErrors.email}</p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-semibold text-[#1D242B]">Password<span className="text-red-500 ml-1">*</span></label>
+                      <div className="relative">
+                        <input
+                          type={showNewUserPassword ? 'text' : 'password'}
+                          value={newUserForm.password}
+                          disabled={isCreatingUser}
+                          onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })}
+                          placeholder="At least 8 characters"
+                          autoComplete="new-password"
+                          className={`w-full px-4 py-3 pe-11 bg-[#F8F9FA] border-2 rounded-xl text-sm text-[#1D242B] placeholder:text-[#B0B8C1] outline-none focus:border-[#FCC519] focus:bg-white transition-colors ${
+                            newUserErrors.password ? 'border-red-400' : 'border-[#E5E9EE]'
+                          }`}
+                        />
+                        <button
+                          type="button"
+                          aria-label={showNewUserPassword ? 'Hide password' : 'Show password'}
+                          onClick={() => setShowNewUserPassword((v) => !v)}
+                          disabled={isCreatingUser}
+                          className="absolute inset-y-0 inset-e-0 px-3 flex items-center text-[#5E5E5E] hover:text-[#1D242B] cursor-pointer disabled:cursor-not-allowed"
+                        >
+                          {showNewUserPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      {newUserErrors.password && (
+                        <p className="text-xs text-red-500">{newUserErrors.password}</p>
                       )}
                     </div>
 

@@ -66,11 +66,29 @@ export const UsersAPI = {
     });
   },
 
+  sendInvitation(email: string, token: string) {
+    return request('/api/sales-dashboard/users/send-invitation', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+  },
+
   upsertClerk(
-    payload: { email: string; firstName: string; lastName: string; phone: string },
+    payload: {
+      email: string;
+      firstName: string;
+      lastName: string;
+      password: string;
+      countryCode: string;
+      phone: string;
+    },
     token: string
   ) {
-    return request('/api/reservationAdmin/users/upsert-clerk', {
+    return request('/api/sales-dashboard/users/upsert-clerk', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
