@@ -33,82 +33,42 @@ export function BasicsStep({
     setAreaInput(String(areaSize));
   }, [areaSize]);
 
-  // --- Limits (derived from current state) ---
+  // --- Limits (each field independent of the others) ---
   const minGuests = 1;
   const maxGuests = 20;
 
   const minBedrooms = 0;
-  const maxBedrooms = guests; // can't have more bedrooms than guests
+  const maxBedrooms = 20;
 
-  const minBeds = Math.max(bedrooms, Math.ceil(guests / 2)); // at least 1 per bedroom, at least 1 per 2 guests
-  const maxBeds = Math.max(guests, minBeds); // at least 1 per guest, but never below minBeds
+  const minBeds = 1;
+  const maxBeds = 20;
 
   const minBathrooms = 1;
-  const maxBathrooms = Math.min(5, bedrooms + 1);
+  const maxBathrooms = 10;
 
   const minAreaSize = 25;
   const maxAreaSize = 3000;
 
-  // --- Smart change handler: cascades adjustments in one update ---
+  // --- Change handler: each field clamps only against its own bounds ---
   const handleChange = (field: string, delta: number) => {
     if (readOnly) return;
 
-    // If no batch update available, fall back to simple updateCounter
     if (!onBatchUpdate) {
       updateCounter(field as keyof PropertyFormData, delta);
       return;
     }
 
-    let newGuests = guests;
-    let newBedrooms = bedrooms;
-    let newBeds = beds;
-    let newBathrooms = bathrooms;
-
-    // Apply the user's change
-    if (field === 'guests') newGuests = clamp(guests + delta, minGuests, maxGuests);
-    if (field === 'bedrooms') newBedrooms = clamp(bedrooms + delta, minBedrooms, maxBedrooms);
-    if (field === 'beds') newBeds = clamp(beds + delta, minBeds, maxBeds);
-    if (field === 'bathrooms') newBathrooms = clamp(bathrooms + delta, minBathrooms, maxBathrooms);
-    if (field === 'area_size') {
-      onBatchUpdate({ area_size: clamp(areaSize + delta, minAreaSize, maxAreaSize) });
-      return;
-    }
-
-    // Cascade: if guests changed, clamp dependents
     if (field === 'guests') {
-      // Bedrooms can't exceed guests
-      const newMaxBedrooms = newGuests;
-      newBedrooms = clamp(newBedrooms, minBedrooms, newMaxBedrooms);
-
-      // Beds: min is max(bedrooms, ceil(guests/2)), max is guests
-      const newMinBeds = Math.max(newBedrooms, Math.ceil(newGuests / 2));
-      const newMaxBeds = Math.max(newGuests, newMinBeds);
-      newBeds = clamp(newBeds, newMinBeds, newMaxBeds);
-
-      // Bathrooms: capped at bedrooms + 1
-      const newMaxBathrooms = Math.min(5, newBedrooms + 1);
-      newBathrooms = clamp(newBathrooms, minBathrooms, newMaxBathrooms);
+      onBatchUpdate({ guests: clamp(guests + delta, minGuests, maxGuests) });
+    } else if (field === 'bedrooms') {
+      onBatchUpdate({ bedrooms: clamp(bedrooms + delta, minBedrooms, maxBedrooms) });
+    } else if (field === 'beds') {
+      onBatchUpdate({ beds: clamp(beds + delta, minBeds, maxBeds) });
+    } else if (field === 'bathrooms') {
+      onBatchUpdate({ bathrooms: clamp(bathrooms + delta, minBathrooms, maxBathrooms) });
+    } else if (field === 'area_size') {
+      onBatchUpdate({ area_size: clamp(areaSize + delta, minAreaSize, maxAreaSize) });
     }
-
-    // Cascade: if bedrooms changed, clamp beds and bathrooms
-    if (field === 'bedrooms') {
-      // Beds must be at least bedrooms
-      const newMinBeds = Math.max(newBedrooms, Math.ceil(newGuests / 2));
-      const newMaxBeds = Math.max(newGuests, newMinBeds);
-      newBeds = clamp(newBeds, newMinBeds, newMaxBeds);
-
-      // Bathrooms: capped at bedrooms + 1
-      const newMaxBathrooms = Math.min(5, newBedrooms + 1);
-      newBathrooms = clamp(newBathrooms, minBathrooms, newMaxBathrooms);
-    }
-
-    // Apply all changes in one update
-    onBatchUpdate({
-      guests: newGuests,
-      bedrooms: newBedrooms,
-      beds: newBeds,
-      bathrooms: newBathrooms,
-    });
   };
 
   return (
