@@ -33,23 +33,16 @@ export function BasicsStep({
     setAreaInput(String(areaSize));
   }, [areaSize]);
 
-  // --- Limits (each field independent of the others) ---
+  // --- Limits (each field independent; counters have no upper cap) ---
   const minGuests = 1;
-  const maxGuests = 20;
-
   const minBedrooms = 0;
-  const maxBedrooms = 20;
-
   const minBeds = 1;
-  const maxBeds = 20;
-
   const minBathrooms = 1;
-  const maxBathrooms = 10;
 
   const minAreaSize = 25;
   const maxAreaSize = 3000;
 
-  // --- Change handler: each field clamps only against its own bounds ---
+  // --- Change handler: each field clamps only against its own min ---
   const handleChange = (field: string, delta: number) => {
     if (readOnly) return;
 
@@ -59,13 +52,13 @@ export function BasicsStep({
     }
 
     if (field === 'guests') {
-      onBatchUpdate({ guests: clamp(guests + delta, minGuests, maxGuests) });
+      onBatchUpdate({ guests: Math.max(minGuests, guests + delta) });
     } else if (field === 'bedrooms') {
-      onBatchUpdate({ bedrooms: clamp(bedrooms + delta, minBedrooms, maxBedrooms) });
+      onBatchUpdate({ bedrooms: Math.max(minBedrooms, bedrooms + delta) });
     } else if (field === 'beds') {
-      onBatchUpdate({ beds: clamp(beds + delta, minBeds, maxBeds) });
+      onBatchUpdate({ beds: Math.max(minBeds, beds + delta) });
     } else if (field === 'bathrooms') {
-      onBatchUpdate({ bathrooms: clamp(bathrooms + delta, minBathrooms, maxBathrooms) });
+      onBatchUpdate({ bathrooms: Math.max(minBathrooms, bathrooms + delta) });
     } else if (field === 'area_size') {
       onBatchUpdate({ area_size: clamp(areaSize + delta, minAreaSize, maxAreaSize) });
     }
@@ -79,7 +72,6 @@ export function BasicsStep({
         value={guests}
         field="guests"
         min={minGuests}
-        max={maxGuests}
         disabled={readOnly}
         onChange={handleChange}
         icon={<Users className="w-[18px] h-[18px] text-[#5E5E5E]" />}
@@ -91,7 +83,6 @@ export function BasicsStep({
         value={bedrooms}
         field="bedrooms"
         min={minBedrooms}
-        max={maxBedrooms}
         disabled={readOnly}
         onChange={handleChange}
         icon={<DoorOpen className="w-[18px] h-[18px] text-[#5E5E5E]" />}
@@ -103,7 +94,6 @@ export function BasicsStep({
         value={beds}
         field="beds"
         min={minBeds}
-        max={maxBeds}
         disabled={readOnly}
         onChange={handleChange}
         icon={<BedDouble className="w-[18px] h-[18px] text-[#5E5E5E]" />}
@@ -115,7 +105,6 @@ export function BasicsStep({
         value={bathrooms}
         field="bathrooms"
         min={minBathrooms}
-        max={maxBathrooms}
         disabled={readOnly}
         onChange={handleChange}
         icon={<Bath className="w-[18px] h-[18px] text-[#5E5E5E]" />}

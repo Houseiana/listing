@@ -676,23 +676,6 @@ function AddListingPage() {
           errors.bathrooms = 'At least 1 bathroom is required';
           missingFields.push('bathroom count');
         }
-
-        // Cross-validation
-        if (listing.bedrooms > listing.guests) {
-          errors.bedrooms = 'Number of bedrooms cannot exceed guest capacity';
-        }
-        if (listing.beds > listing.guests) {
-          errors.beds = 'Number of beds cannot exceed guest capacity';
-        }
-        if (listing.guests > listing.beds * 2) {
-          errors.guests = `With ${listing.beds} beds, maximum capacity is ${listing.beds * 2} guests`;
-        }
-        if (listing.beds < listing.bedrooms) {
-          errors.beds = 'Each bedroom must have at least one bed';
-        }
-        if (listing.bathrooms > 5) {
-          errors.bathrooms = 'Maximum 5 bathrooms allowed';
-        }
         break;
 
       case 3: // Amenities (optional step, no validation required)
