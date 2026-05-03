@@ -382,7 +382,12 @@ function AddListingPage() {
 
       setLoading(true);
       try {
-        const response = await PropertyAPI.getById(propertyId);
+        const token = await getToken();
+        if (!token) {
+          setLoading(false);
+          return;
+        }
+        const response = await PropertyAPI.getById(propertyId, token);
         if (response.success && response.data) {
           const rawData = response.data as any;
           // Handle potential double nesting (response.data.data) or direct access
@@ -587,7 +592,7 @@ function AddListingPage() {
     if (propertyId) {
       fetchPropertyData();
     }
-  }, [propertyId]);
+  }, [propertyId, getToken]);
 
   const { isLoaded: isMapLoaded } = useLoadScript({
     id: 'google-map-script',

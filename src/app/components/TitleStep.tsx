@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
 import { LookupsAPI } from '@/lib/api/backend-api';
 import { PropertyFormData } from '../types';
 
@@ -20,6 +21,7 @@ export const TitleStep = ({
   validationErrors = {},
   hasAttemptedNext = false,
 }: TitleStepProps) => {
+  const { getToken } = useAuth();
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,7 +29,9 @@ export const TitleStep = ({
     const fetchHighlights = async () => {
       try {
         setLoading(true);
-        const response = await LookupsAPI.getPropertyHighlights();
+        const token = await getToken();
+        if (!token) return;
+        const response = await LookupsAPI.getPropertyHighlights(token);
         if (response.success && response.data) {
           setHighlights(response.data);
         }
@@ -38,7 +42,7 @@ export const TitleStep = ({
       }
     };
     fetchHighlights();
-  }, []);
+  }, [getToken]);
 
   const toggleHighlight = (id: number) => {
     setListing({

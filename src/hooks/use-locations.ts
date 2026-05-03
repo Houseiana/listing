@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
 import { LookupsAPI } from '@/lib/api/backend-api';
 
 interface Location {
@@ -18,13 +19,16 @@ function extractArray(data: any): any[] {
 }
 
 export function useCountries() {
+  const { getToken } = useAuth();
   const [countries, setCountries] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetch = async () => {
       try {
-        const res = await LookupsAPI.getCountries();
+        const token = await getToken();
+        if (!token) return;
+        const res = await LookupsAPI.getCountries(token);
         if (res.success && res.data) {
           setCountries(extractArray(res.data));
         }
@@ -35,12 +39,13 @@ export function useCountries() {
       }
     };
     fetch();
-  }, []);
+  }, [getToken]);
 
   return { countries, isLoading };
 }
 
 export function useStates(countryId: string) {
+  const { getToken } = useAuth();
   const [states, setStates] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -52,7 +57,9 @@ export function useStates(countryId: string) {
     setIsLoading(true);
     const fetch = async () => {
       try {
-        const res = await LookupsAPI.getStates(countryId);
+        const token = await getToken();
+        if (!token) return;
+        const res = await LookupsAPI.getStates(countryId, token);
         if (res.success && res.data) {
           setStates(extractArray(res.data));
         }
@@ -63,12 +70,13 @@ export function useStates(countryId: string) {
       }
     };
     fetch();
-  }, [countryId]);
+  }, [countryId, getToken]);
 
   return { states, isLoading };
 }
 
 export function useCities(stateId: string) {
+  const { getToken } = useAuth();
   const [cities, setCities] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -80,7 +88,9 @@ export function useCities(stateId: string) {
     setIsLoading(true);
     const fetch = async () => {
       try {
-        const res = await LookupsAPI.getCities(stateId);
+        const token = await getToken();
+        if (!token) return;
+        const res = await LookupsAPI.getCities(stateId, token);
         if (res.success && res.data) {
           setCities(extractArray(res.data));
         }
@@ -91,12 +101,13 @@ export function useCities(stateId: string) {
       }
     };
     fetch();
-  }, [stateId]);
+  }, [stateId, getToken]);
 
   return { cities, isLoading };
 }
 
 export function useVillages(cityId: string) {
+  const { getToken } = useAuth();
   const [villages, setVillages] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -108,7 +119,9 @@ export function useVillages(cityId: string) {
     setIsLoading(true);
     const fetch = async () => {
       try {
-        const res = await LookupsAPI.getVillages(cityId);
+        const token = await getToken();
+        if (!token) return;
+        const res = await LookupsAPI.getVillages(cityId, token);
         if (res.success && res.data) {
           setVillages(extractArray(res.data));
         }
@@ -119,7 +132,7 @@ export function useVillages(cityId: string) {
       }
     };
     fetch();
-  }, [cityId]);
+  }, [cityId, getToken]);
 
   return { villages, isLoading };
 }

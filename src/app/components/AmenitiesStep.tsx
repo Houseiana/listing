@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
 import { PropertyFormData } from '../types';
 import {
   Wifi,
@@ -75,6 +76,7 @@ export const AmenitiesStep = ({
   setListing,
   readOnly,
 }: AmenitiesStepProps) => {
+  const { getToken } = useAuth();
   const [amenities, setAmenities] = useState<Amenity[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -82,7 +84,9 @@ export const AmenitiesStep = ({
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await LookupsAPI.getAmenities();
+        const token = await getToken();
+        if (!token) return;
+        const res = await LookupsAPI.getAmenities(token);
         if (res.success && res.data) setAmenities(res.data);
       } catch (error) {
         console.error('Failed to fetch amenities:', error);
@@ -91,7 +95,7 @@ export const AmenitiesStep = ({
       }
     };
     fetchData();
-  }, []);
+  }, [getToken]);
 
   const toggleAmenity = (id: number) => {
     setListing({

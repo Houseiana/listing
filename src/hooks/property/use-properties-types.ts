@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
 import { LookupsAPI } from '@/lib/api/backend-api';
 import {
   Home,
@@ -73,13 +74,16 @@ function extractArray(data: any): any[] {
 }
 
 export function usePropertiesTypes() {
+  const { getToken } = useAuth();
   const [propertyTypes, setPropertyTypes] = useState<PropertyType[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetch = async () => {
       try {
-        const res = await LookupsAPI.getPropertyTypes();
+        const token = await getToken();
+        if (!token) return;
+        const res = await LookupsAPI.getPropertyTypes(token);
         if (res.success && res.data) {
           const raw = extractArray(res.data);
           const mapped: PropertyType[] = raw.map((item: any) => ({
@@ -97,7 +101,7 @@ export function usePropertiesTypes() {
       }
     };
     fetch();
-  }, []);
+  }, [getToken]);
 
   return { propertyTypes, loading };
 }

@@ -37,23 +37,27 @@ async function request<T = any>(
   }
 }
 
+const authHeader = (token: string) => ({ Authorization: `Bearer ${token}` });
+
 export const PropertyAPI = {
   create(formData: FormData, token: string) {
     return request('/api/sales-dashboard/draft', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: authHeader(token),
       body: formData,
     });
   },
 
-  getById(id: string) {
-    return request(`/api/properties/${id}`);
+  getById(id: string, token: string) {
+    return request(`/api/properties/${id}`, {
+      headers: authHeader(token),
+    });
   },
 
   update(id: string, formData: FormData, token: string) {
     return request(`/api/properties/${id}`, {
       method: 'PUT',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: authHeader(token),
       body: formData,
     });
   },
@@ -62,7 +66,7 @@ export const PropertyAPI = {
 export const UsersAPI = {
   search(query: string, token: string) {
     return request(`/api/sales-dashboard/users/search?query=${encodeURIComponent(query)}`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: authHeader(token),
     });
   },
 
@@ -70,7 +74,7 @@ export const UsersAPI = {
     return request('/api/sales-dashboard/users/send-invitation', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...authHeader(token),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ email }),
@@ -91,7 +95,7 @@ export const UsersAPI = {
     return request('/api/sales-dashboard/users/upsert-clerk', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...authHeader(token),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
@@ -100,39 +104,39 @@ export const UsersAPI = {
 };
 
 export const LookupsAPI = {
-  getPropertyTypes() {
-    return request('/api/Lookups/PropertyType');
+  getPropertyTypes(token: string) {
+    return request('/api/Lookups/PropertyType', { headers: authHeader(token) });
   },
 
-  getAmenities() {
-    return request('/api/Lookups/Amenities');
+  getAmenities(token: string) {
+    return request('/api/Lookups/Amenities', { headers: authHeader(token) });
   },
 
-  getSafetyItems() {
-    return request('/api/lookups/safety-items');
+  getSafetyItems(token: string) {
+    return request('/api/lookups/safety-items', { headers: authHeader(token) });
   },
 
-  getGuestFavorites() {
-    return request('/api/lookups/guest-favorites');
+  getGuestFavorites(token: string) {
+    return request('/api/lookups/guest-favorites', { headers: authHeader(token) });
   },
 
-  getPropertyHighlights() {
-    return request('/api/Lookups/PropertyHighlight');
+  getPropertyHighlights(token: string) {
+    return request('/api/Lookups/PropertyHighlight', { headers: authHeader(token) });
   },
 
-  getCountries() {
-    return request('/api/Lookups/country');
+  getCountries(token: string) {
+    return request('/api/Lookups/country', { headers: authHeader(token) });
   },
 
-  getStates(countryId: string) {
-    return request(`/api/Lookups/states?countryId=${countryId}`);
+  getStates(countryId: string, token: string) {
+    return request(`/api/Lookups/states?countryId=${countryId}`, { headers: authHeader(token) });
   },
 
-  getCities(stateId: string) {
-    return request(`/api/Lookups/cities?stateId=${stateId}`);
+  getCities(stateId: string, token: string) {
+    return request(`/api/Lookups/cities?stateId=${stateId}`, { headers: authHeader(token) });
   },
 
-  getVillages(cityId: string) {
-    return request(`/api/Lookups/villages?cityId=${cityId}`);
+  getVillages(cityId: string, token: string) {
+    return request(`/api/Lookups/villages?cityId=${cityId}`, { headers: authHeader(token) });
   },
 };
