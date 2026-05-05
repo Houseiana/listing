@@ -1,5 +1,5 @@
 import { PropertyFormData } from '../types';
-import { Upload, X, CheckCircle } from 'lucide-react';
+import { Upload, X, CheckCircle, Building2, User } from 'lucide-react';
 
 interface DocumentsStepProps {
   listing: PropertyFormData;
@@ -134,6 +134,55 @@ export const DocumentsStep = ({
       </p>
 
       <div className="flex flex-col gap-6">
+        {/* Managed By toggle */}
+        <div className="border-2 border-[#F0F2F5] rounded-2xl px-[34px] py-6 flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col gap-1 pr-4">
+              <div className="flex items-center gap-2">
+                {listing.managedBy ? (
+                  <Building2 className="w-4 h-4 text-[#1D242B]" />
+                ) : (
+                  <User className="w-4 h-4 text-[#1D242B]" />
+                )}
+                <h3 className="text-[17px] font-bold text-[#1D242B]">
+                  {listing.managedBy ? 'Hosted by Houseiana' : 'Hosted by owner'}
+                </h3>
+              </div>
+              <p className="text-sm text-[#5E5E5E]">
+                {'Switch on to let Houseiana manage and host this property for you'}
+              </p>
+            </div>
+            <button
+              type="button"
+              title="Toggle managed by"
+              onClick={() =>
+                !readOnly &&
+                setListing({
+                  ...listing,
+                  managedBy: !listing.managedBy,
+                })
+              }
+              disabled={readOnly}
+              className={`relative min-w-[44px] max-w-[44px] min-h-[26px] max-h-[26px] rounded-full transition-colors flex-shrink-0 ${
+                listing.managedBy ? 'bg-[#FCC519]' : 'bg-[#E5E9EE]'
+              } ${readOnly ? 'cursor-not-allowed opacity-70' : ''}`}
+            >
+              <span
+                className={`absolute top-[2px] left-[2px] w-[22px] h-[22px] bg-white rounded-full shadow-[0px_1px_2px_-1px_rgba(0,0,0,0.1),0px_1px_3px_0px_rgba(0,0,0,0.1)] transition-transform ${
+                  listing.managedBy ? 'translate-x-[18px]' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+          <div className="bg-[#FCF9EE] border border-[rgba(247,232,176,0.5)] rounded-xl p-4">
+            <p className="text-[13px] text-[#5E5E5E] leading-[1.625]">
+              {listing.managedBy
+                ? 'Houseiana team will handle guest communication, check-in, cleaning, and day-to-day operations on your behalf.'
+                : 'You (the owner) will handle guest communication, check-in, and day-to-day operations yourself.'}
+            </p>
+          </div>
+        </div>
+
         {renderUploadBox(
           'PrpopertyDocoument',
           'Property Document',

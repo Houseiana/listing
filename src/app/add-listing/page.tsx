@@ -366,6 +366,7 @@ function AddListingPage() {
     phoneNumber: '',
     emergencyPhoneNumber: '',
     isPropertyOwner: true,
+    managedBy: false,
     documentOfProperty: {
       PrpopertyDocoument: null,
       HostId: null,
@@ -524,6 +525,7 @@ function AddListingPage() {
 
             // Owner status
             isPropertyOwner: property.isPropertyOwner ?? property.is_property_owner ?? true,
+            managedBy: property.managedBy ?? property.managed_by ?? false,
 
             // Location details
             apt: property.apt || property.address?.apt || '',
@@ -1043,6 +1045,7 @@ function AddListingPage() {
       }
 
       if (currentStep === 11) {
+        formData.append('managedBy', String(listing.managedBy));
         // Handle documents - send File objects as uploads, existing URLs as strings
         const doc = listing.documentOfProperty;
         if (doc.PrpopertyDocoument instanceof File) {

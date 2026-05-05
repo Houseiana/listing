@@ -64,5 +64,6 @@ export interface PropertyFormData {
   phoneNumber: string;
   emergencyPhoneNumber: string;
   isPropertyOwner: boolean;
+  managedBy: boolean;
   documentOfProperty: DocumentOfProperty;
 }
