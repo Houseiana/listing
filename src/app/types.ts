@@ -50,6 +50,7 @@ export interface PropertyFormData {
   monthlyDiscount: number;
   newListingDiscount: number;
   instantBook: boolean;
+  minimumDaysForBooking: number;
   securityCamera: boolean;
   noiseMonitor: boolean;
   weapons: boolean;

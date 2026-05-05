@@ -1,8 +1,8 @@
 import { PropertyFormData } from '../types';
-import { Zap, AlertCircle, Phone } from 'lucide-react';
+import { Zap, AlertCircle, Phone, CalendarDays } from 'lucide-react';
 import { useMemo } from 'react';
 import { countries as countryList } from '@/lib/countries';
-import { blockArabicNumeralKey } from '@/lib/utils/numeric-input';
+import { blockArabicNumeralKey, stripArabicNumerals } from '@/lib/utils/numeric-input';
 
 interface LegalStepProps {
   listing: PropertyFormData;
@@ -154,6 +154,76 @@ export const LegalStep = ({
               }`}
             />
           </button>
+        </div>
+
+        {/* Minimum Days For Booking */}
+        <div className="p-[34px] border-2 border-[#F0F2F5] rounded-2xl bg-white">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="w-4 h-4 text-[#1D242B]" />
+              <h4 className="text-lg font-bold text-[#1D242B]">
+                {'Minimum Days For Booking'}
+              </h4>
+            </div>
+            <p className="text-sm text-[#5E5E5E] leading-[1.625]">
+              {'The minimum number of nights a guest must book in a single reservation'}
+            </p>
+            <div className="flex items-center gap-3 mt-1">
+              <button
+                type="button"
+                title="Decrease minimum days"
+                onClick={() => {
+                  if (readOnly) return;
+                  const current = Number(listing.minimumDaysForBooking) || 1;
+                  const next = Math.max(1, current - 1);
+                  setListing({ ...listing, minimumDaysForBooking: next });
+                }}
+                disabled={readOnly || (Number(listing.minimumDaysForBooking) || 1) <= 1}
+                className={`w-10 h-10 rounded-full border-2 border-[#F0F2F5] text-[#1D242B] text-lg font-bold flex items-center justify-center transition-colors ${
+                  readOnly || (Number(listing.minimumDaysForBooking) || 1) <= 1
+                    ? 'cursor-not-allowed opacity-50'
+                    : 'hover:border-[#FCC519]'
+                }`}
+              >
+                {'−'}
+              </button>
+              <input
+                type="number"
+                min={1}
+                dir="ltr"
+                value={listing.minimumDaysForBooking ?? 1}
+                onKeyDown={blockArabicNumeralKey}
+                onChange={(e) => {
+                  if (readOnly) return;
+                  const raw = stripArabicNumerals(e.target.value).replace(/[^0-9]/g, '');
+                  const parsed = parseInt(raw, 10);
+                  const next = Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+                  setListing({ ...listing, minimumDaysForBooking: next });
+                }}
+                disabled={readOnly}
+                placeholder="1"
+                className={`w-24 text-center px-4 py-3 border-2 rounded-xl text-sm font-medium text-[#1D242B] placeholder:text-[#B0B8C1] focus:outline-none focus:border-[#FCC519] transition-colors border-[#F0F2F5] ${
+                  readOnly ? 'bg-gray-50 cursor-not-allowed' : ''
+                }`}
+              />
+              <button
+                type="button"
+                title="Increase minimum days"
+                onClick={() => {
+                  if (readOnly) return;
+                  const current = Number(listing.minimumDaysForBooking) || 1;
+                  setListing({ ...listing, minimumDaysForBooking: current + 1 });
+                }}
+                disabled={readOnly}
+                className={`w-10 h-10 rounded-full border-2 border-[#F0F2F5] text-[#1D242B] text-lg font-bold flex items-center justify-center transition-colors ${
+                  readOnly ? 'cursor-not-allowed opacity-50' : 'hover:border-[#FCC519]'
+                }`}
+              >
+                {'+'}
+              </button>
+              <span className="text-sm text-[#5E5E5E]">{'nights'}</span>
+            </div>
+          </div>
         </div>
       </div>
 

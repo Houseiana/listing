@@ -352,6 +352,7 @@ function AddListingPage() {
     monthlyDiscount: 0,
     newListingDiscount: 0,
     instantBook: true,
+    minimumDaysForBooking: 1,
     securityCamera: false,
     noiseMonitor: false,
     weapons: false,
@@ -503,6 +504,11 @@ function AddListingPage() {
 
             // House rules
             instantBook: property.instantBook ?? property.instant_book ?? false,
+            minimumDaysForBooking:
+              property.minimumDaysForBooking ??
+              property.minimum_days_for_booking ??
+              property.bookingSettings?.minimumDaysForBooking ??
+              1,
             securityCamera: property.securityCamera ?? property.security_camera ?? false,
             noiseMonitor: property.noiseMonitor ?? property.noise_monitor ?? false,
             weapons: property.weapons ?? false,
@@ -1015,6 +1021,10 @@ function AddListingPage() {
         formData.append(
           'bookingSettings.instantBook',
           String(listing.instantBook)
+        );
+        formData.append(
+          'bookingSettings.minimumDaysForBooking',
+          String(listing.minimumDaysForBooking ?? 1)
         );
         formData.append(
           'bookingSettings.securitCamera',
