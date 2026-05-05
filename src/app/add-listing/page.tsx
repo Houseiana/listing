@@ -74,6 +74,7 @@ function AddListingPage() {
     email: '',
     password: '',
     phone: '',
+    createByPhone: false,
   });
   const [newUserDialCode, setNewUserDialCode] = useState<string>('+20');
   const [newUserErrors, setNewUserErrors] = useState<Record<string, string>>({});
@@ -138,7 +139,7 @@ function AddListingPage() {
   }, [userSearchQuery, searchUsers]);
 
   const resetAddUserForm = () => {
-    setNewUserForm({ firstName: '', lastName: '', email: '', password: '', phone: '' });
+    setNewUserForm({ firstName: '', lastName: '', email: '', password: '', phone: '', createByPhone: false });
     setNewUserDialCode('+20');
     setNewUserErrors({});
     setShowNewUserPassword(false);
@@ -190,7 +191,7 @@ function AddListingPage() {
       }
 
       const res = await UsersAPI.upsertClerk(
-        { email, firstName, lastName, password, countryCode: newUserDialCode, phone },
+        { email, firstName, lastName, password, countryCode: newUserDialCode, phone, CreateByPhone: newUserForm.createByPhone },
         token
       );
 
@@ -1751,6 +1752,38 @@ function AddListingPage() {
                       {newUserErrors.phone && (
                         <p className="text-xs text-red-500">{newUserErrors.phone}</p>
                       )}
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#F8F9FA] border-2 border-[#E5E9EE] rounded-xl">
+                      <div className="flex flex-col gap-0.5 pr-2">
+                        <h3 className="text-sm font-semibold text-[#1D242B]">
+                          {newUserForm.createByPhone ? 'Owned by Houseiana' : 'Not owned by Houseiana'}
+                          <span className="text-red-500 ml-1">*</span>
+                        </h3>
+                        <p className="text-xs text-[#5E5E5E]">
+                          Switch on to mark this user as owned by Houseiana
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={newUserForm.createByPhone}
+                        title="Toggle create by phone"
+                        onClick={() =>
+                          !isCreatingUser &&
+                          setNewUserForm({ ...newUserForm, createByPhone: !newUserForm.createByPhone })
+                        }
+                        disabled={isCreatingUser}
+                        className={`relative min-w-[44px] max-w-[44px] min-h-[26px] max-h-[26px] rounded-full transition-colors flex-shrink-0 ${
+                          newUserForm.createByPhone ? 'bg-[#FCC519]' : 'bg-[#E5E9EE]'
+                        } ${isCreatingUser ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
+                      >
+                        <span
+                          className={`absolute top-[2px] left-[2px] w-[22px] h-[22px] bg-white rounded-full shadow-[0px_1px_2px_-1px_rgba(0,0,0,0.1),0px_1px_3px_0px_rgba(0,0,0,0.1)] transition-transform ${
+                            newUserForm.createByPhone ? 'translate-x-[18px]' : 'translate-x-0'
+                          }`}
+                        />
+                      </button>
                     </div>
 
                     <div className="flex items-center gap-3 mt-2">

@@ -89,6 +89,7 @@ export const UsersAPI = {
       password: string;
       countryCode: string;
       phone: string;
+      CreateByPhone: boolean;
     },
     token: string
   ) {
