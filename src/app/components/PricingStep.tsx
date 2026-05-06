@@ -19,7 +19,7 @@ export const PricingStep = ({
   const starOptions = [1, 2, 3, 4, 5];
   const isEGP = currency === 'EGP';
   const minBasePrice = isEGP ? 1000 : 20;
-  const maxBasePrice = isEGP ? 50000 : 10000;
+  const maxBasePrice = isEGP ? 100000 : 10000;
   const maxCleaningFee = isEGP ? 3000 : 35;
 
   // Set default price to minimum when arriving at this step with no price set
