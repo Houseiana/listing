@@ -74,7 +74,7 @@ function AddListingPage() {
     email: '',
     password: '',
     phone: '',
-    createByPhone: false,
+    createByPhone: null as boolean | null,
   });
   const [newUserDialCode, setNewUserDialCode] = useState<string>('+20');
   const [newUserErrors, setNewUserErrors] = useState<Record<string, string>>({});
@@ -139,7 +139,7 @@ function AddListingPage() {
   }, [userSearchQuery, searchUsers]);
 
   const resetAddUserForm = () => {
-    setNewUserForm({ firstName: '', lastName: '', email: '', password: '', phone: '', createByPhone: false });
+    setNewUserForm({ firstName: '', lastName: '', email: '', password: '', phone: '', createByPhone: null });
     setNewUserDialCode('+20');
     setNewUserErrors({});
     setShowNewUserPassword(false);
@@ -170,6 +170,9 @@ function AddListingPage() {
     } else if (phone.length < 6) {
       errors.phone = 'Phone number is too short';
     }
+    if (newUserForm.createByPhone === null) {
+      errors.createByPhone = 'Please select whether this user is owned by Houseiana';
+    }
 
     if (Object.keys(errors).length > 0) {
       setNewUserErrors(errors);
@@ -191,7 +194,7 @@ function AddListingPage() {
       }
 
       const res = await UsersAPI.upsertClerk(
-        { email, firstName, lastName, password, countryCode: newUserDialCode, phone, CreateByPhone: newUserForm.createByPhone },
+        { email, firstName, lastName, password, countryCode: newUserDialCode, phone, CreateByPhone: newUserForm.createByPhone === true },
         token
       );
 
@@ -1754,36 +1757,65 @@ function AddListingPage() {
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#F8F9FA] border-2 border-[#E5E9EE] rounded-xl">
-                      <div className="flex flex-col gap-0.5 pr-2">
-                        <h3 className="text-sm font-semibold text-[#1D242B]">
-                          {newUserForm.createByPhone ? 'Owned by Houseiana' : 'Not owned by Houseiana'}
-                          <span className="text-red-500 ml-1">*</span>
-                        </h3>
-                        <p className="text-xs text-[#5E5E5E]">
-                          Switch on to mark this user as owned by Houseiana
-                        </p>
+                    <div className="flex flex-col gap-1.5">
+                      <div className={`flex flex-col gap-3 px-4 py-3 bg-[#F8F9FA] border-2 rounded-xl ${
+                        newUserErrors.createByPhone ? 'border-red-400' : 'border-[#E5E9EE]'
+                      }`}>
+                        <div className="flex flex-col gap-0.5">
+                          <h3 className="text-sm font-semibold text-[#1D242B]">
+                            Owned by Houseiana
+                            <span className="text-red-500 ml-1">*</span>
+                          </h3>
+                          <p className="text-xs text-[#5E5E5E]">
+                            Is this user owned by Houseiana?
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            role="radio"
+                            aria-checked={newUserForm.createByPhone === true}
+                            onClick={() => {
+                              if (isCreatingUser) return;
+                              setNewUserForm({ ...newUserForm, createByPhone: true });
+                              if (newUserErrors.createByPhone) {
+                                setNewUserErrors({ ...newUserErrors, createByPhone: '' });
+                              }
+                            }}
+                            disabled={isCreatingUser}
+                            className={`py-2.5 rounded-lg text-sm font-semibold border-2 transition-colors ${
+                              newUserForm.createByPhone === true
+                                ? 'border-[#FCC519] bg-[#FCC519] text-[#1D242B]'
+                                : 'border-[#E5E9EE] bg-white text-[#1D242B] hover:bg-[#F8F9FA]'
+                            } ${isCreatingUser ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
+                          >
+                            Yes
+                          </button>
+                          <button
+                            type="button"
+                            role="radio"
+                            aria-checked={newUserForm.createByPhone === false}
+                            onClick={() => {
+                              if (isCreatingUser) return;
+                              setNewUserForm({ ...newUserForm, createByPhone: false });
+                              if (newUserErrors.createByPhone) {
+                                setNewUserErrors({ ...newUserErrors, createByPhone: '' });
+                              }
+                            }}
+                            disabled={isCreatingUser}
+                            className={`py-2.5 rounded-lg text-sm font-semibold border-2 transition-colors ${
+                              newUserForm.createByPhone === false
+                                ? 'border-[#FCC519] bg-[#FCC519] text-[#1D242B]'
+                                : 'border-[#E5E9EE] bg-white text-[#1D242B] hover:bg-[#F8F9FA]'
+                            } ${isCreatingUser ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
+                          >
+                            No
+                          </button>
+                        </div>
                       </div>
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={newUserForm.createByPhone}
-                        title="Toggle create by phone"
-                        onClick={() =>
-                          !isCreatingUser &&
-                          setNewUserForm({ ...newUserForm, createByPhone: !newUserForm.createByPhone })
-                        }
-                        disabled={isCreatingUser}
-                        className={`relative min-w-[44px] max-w-[44px] min-h-[26px] max-h-[26px] rounded-full transition-colors flex-shrink-0 ${
-                          newUserForm.createByPhone ? 'bg-[#FCC519]' : 'bg-[#E5E9EE]'
-                        } ${isCreatingUser ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
-                      >
-                        <span
-                          className={`absolute top-[2px] left-[2px] w-[22px] h-[22px] bg-white rounded-full shadow-[0px_1px_2px_-1px_rgba(0,0,0,0.1),0px_1px_3px_0px_rgba(0,0,0,0.1)] transition-transform ${
-                            newUserForm.createByPhone ? 'translate-x-[18px]' : 'translate-x-0'
-                          }`}
-                        />
-                      </button>
+                      {newUserErrors.createByPhone && (
+                        <p className="text-xs text-red-500">{newUserErrors.createByPhone}</p>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-3 mt-2">
