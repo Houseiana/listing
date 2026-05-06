@@ -162,8 +162,14 @@ export const LocationStep = ({
       const autocomplete = new google.maps.places.Autocomplete(
         addressInputRef.current,
         {
-          types: ['address'],
+          types: ['geocode'],
           fields: ['address_components', 'formatted_address', 'geometry'],
+          componentRestrictions: { country: ['eg'] },
+          bounds: new google.maps.LatLngBounds(
+            { lat: listingRef.current.latitude - 0.5, lng: listingRef.current.longitude - 0.5 },
+            { lat: listingRef.current.latitude + 0.5, lng: listingRef.current.longitude + 0.5 }
+          ),
+          strictBounds: false,
         }
       );
 
