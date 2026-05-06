@@ -162,7 +162,6 @@ export const LocationStep = ({
       const autocomplete = new google.maps.places.Autocomplete(
         addressInputRef.current,
         {
-          types: ['geocode'],
           fields: ['address_components', 'formatted_address', 'geometry'],
           componentRestrictions: { country: ['eg'] },
           bounds: new google.maps.LatLngBounds(
