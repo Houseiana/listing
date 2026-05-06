@@ -20,7 +20,7 @@ export const PricingStep = ({
   const isEGP = currency === 'EGP';
   const minBasePrice = isEGP ? 1000 : 20;
   const maxBasePrice = isEGP ? 50000 : 10000;
-  const maxCleaningFee = isEGP ? 2500 : 35;
+  const maxCleaningFee = isEGP ? 3000 : 35;
 
   // Set default price to minimum when arriving at this step with no price set
   useEffect(() => {
