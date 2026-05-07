@@ -1,5 +1,6 @@
 import { PropertyFormData } from '../types';
 import { Sun, CalendarDays, Check } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/context';
 
 interface DiscountsStepProps {
   listing: PropertyFormData;
@@ -12,13 +13,14 @@ export const DiscountsStep = ({
   setListing,
   readOnly,
 }: DiscountsStepProps) => {
+  const { t } = useTranslation();
   const hasAnyDiscount =
     listing.newListingDiscount > 0 || listing.weeklyDiscount > 0;
 
   return (
     <div className="flex flex-col gap-4">
       <p className="text-base font-bold text-[#1D242B]">
-        {'Add discounts to attract more guests'}
+        {t('addListing.discounts.heading')}
       </p>
 
       {/* New Listing Promotion */}
@@ -48,10 +50,10 @@ export const DiscountsStep = ({
           </div>
           <div className="flex flex-col gap-0.5 min-w-0">
             <h4 className="text-sm lg:text-lg font-bold text-[#1D242B] leading-tight">
-              {'New Listing Promotion'}
+              {t('addListing.discounts.newListingTitle')}
             </h4>
             <p className="text-sm text-[#5E5E5E] leading-snug">
-              {'Offer 20% off your first 3 bookings to get started'}
+              {t('addListing.discounts.newListingDesc')}
             </p>
           </div>
         </div>
@@ -106,10 +108,10 @@ export const DiscountsStep = ({
           </div>
           <div className="flex flex-col gap-0.5 min-w-0">
             <h4 className="text-sm lg:text-lg font-bold text-[#1D242B] leading-tight">
-              {'Weekly Discount'}
+              {t('addListing.discounts.weeklyTitle')}
             </h4>
             <p className="text-xs text-[#5E5E5E] leading-snug">
-              {'Offer 20% off for stays of 7 nights or more'}
+              {t('addListing.discounts.weeklyDesc')}
             </p>
           </div>
         </div>
@@ -141,7 +143,7 @@ export const DiscountsStep = ({
             <Check className="w-5 h-5 text-[#10B981]" strokeWidth={2.5} />
           </div>
           <p className="text-sm font-semibold text-[#10B981]">
-            {'Great choice! Discounts help you get more bookings.'}
+            {t('addListing.discounts.successMessage')}
           </p>
         </div>
       )}

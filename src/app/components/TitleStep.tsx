@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { LookupsAPI } from '@/lib/api/backend-api';
 import { PropertyFormData } from '../types';
+import { useTranslation } from '@/lib/i18n/context';
 
 interface TitleStepProps {
   listing: PropertyFormData;
@@ -21,6 +22,7 @@ export const TitleStep = ({
   validationErrors = {},
   hasAttemptedNext = false,
 }: TitleStepProps) => {
+  const { t } = useTranslation();
   const { getToken } = useAuth();
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +63,7 @@ export const TitleStep = ({
       {/* Title Section */}
       <div className="flex flex-col gap-3">
         <h3 className="text-base font-bold text-[#2F3A45]">
-          {'Short titles work best'}
+          {t('addListing.title.shortTitlesWorkBest')}
         </h3>
         <div className="relative">
           <textarea
@@ -72,7 +74,7 @@ export const TitleStep = ({
             onBlur={() =>
               setListing({ ...listing, title: listing.title.trim() })
             }
-            placeholder="Give your property a catchy title"
+            placeholder={t('addListing.title.titlePlaceholder')}
             maxLength={60}
             rows={4}
             className={`w-full px-5 py-5 border rounded-[12px] focus:ring-2 focus:ring-[#FCC519] focus:border-transparent outline-none text-base resize-none ${
@@ -90,7 +92,7 @@ export const TitleStep = ({
       {/* Description Section */}
       <div className="flex flex-col gap-3">
         <h3 className="text-base font-bold text-[#2F3A45]">
-          {'Description'}
+          {t('addListing.title.descriptionHeading')}
         </h3>
         <div className="relative">
           <textarea
@@ -104,7 +106,7 @@ export const TitleStep = ({
             onBlur={() =>
               setListing({ ...listing, description: listing.description.trim() })
             }
-            placeholder="Describe your property..."
+            placeholder={t('addListing.title.descriptionPlaceholder')}
             maxLength={500}
             rows={6}
             className={`w-full px-5 py-5 border rounded-[12px] focus:ring-2 focus:ring-[#FCC519] focus:border-transparent outline-none text-base resize-none ${
@@ -122,10 +124,10 @@ export const TitleStep = ({
       {/* Highlights Section */}
       <div className="flex flex-col gap-4">
         <h3 className="text-base font-bold text-[#2F3A45]">
-          {'Highlights'}
+          {t('addListing.title.highlightsHeading')}
         </h3>
         {loading ? (
-          <div className="text-[#5E5E5E]">{"Loading highlights..."}</div>
+          <div className="text-[#5E5E5E]">{t('addListing.title.loadingHighlights')}</div>
         ) : (
           <div className="flex flex-wrap gap-3">
             {highlights.map((h) => (

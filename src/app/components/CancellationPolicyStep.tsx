@@ -8,6 +8,7 @@ import {
   Check,
 } from 'lucide-react';
 import { stripArabicNumerals, blockArabicNumeralKey } from '@/lib/utils/numeric-input';
+import { useTranslation } from '@/lib/i18n/context';
 
 interface CancellationPolicyStepProps {
   listing: PropertyFormData;
@@ -18,23 +19,24 @@ export function CancellationPolicyStep({
   listing,
   setListing,
 }: CancellationPolicyStepProps) {
+  const { t } = useTranslation();
   const policies = [
     {
       id: 'FLEXIBLE',
-      label: 'Flexible',
-      description: 'Full refund if cancelled within the free cancellation window',
+      label: t('addListing.cancellation.flexibleLabel'),
+      description: t('addListing.cancellation.flexibleDesc'),
       icon: Shield,
     },
     {
       id: 'MODERATE',
-      label: 'Moderate',
-      description: 'Full refund if cancelled a set number of days before check-in',
+      label: t('addListing.cancellation.moderateLabel'),
+      description: t('addListing.cancellation.moderateDesc'),
       icon: ShieldCheck,
     },
     {
       id: 'FIXED',
-      label: 'Fixed',
-      description: 'No refund after booking is confirmed',
+      label: t('addListing.cancellation.fixedLabel'),
+      description: t('addListing.cancellation.fixedDesc'),
       icon: ShieldAlert,
     },
   ] as const;
@@ -42,7 +44,7 @@ export function CancellationPolicyStep({
   return (
     <div className="flex flex-col gap-5">
       <p className="text-base font-bold text-[#1D242B]">
-        {'Choose a cancellation policy for your listing'}
+        {t('addListing.cancellation.heading')}
       </p>
 
       {/* Policy cards */}
@@ -125,13 +127,13 @@ export function CancellationPolicyStep({
               strokeWidth={1.67}
             />
             <h3 className="text-base font-bold text-[#1D242B]">
-              {'Select timeframe'}
+              {t('addListing.cancellation.selectTimeframe')}
             </h3>
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
             {[
-              { hours: 24, label: '24 Hours' },
-              { hours: 48, label: '48 Hours' },
+              { hours: 24, label: t('addListing.cancellation.hours24') },
+              { hours: 48, label: t('addListing.cancellation.hours48') },
             ].map((option) => {
               const isOptionSelected =
                 listing.cancellationPolicy?.freeCancellationHours ===
@@ -189,19 +191,19 @@ export function CancellationPolicyStep({
               strokeWidth={1.67}
             />
             <h3 className="text-base font-bold text-[#1D242B]">
-              {'Customize moderate policy'}
+              {t('addListing.cancellation.customizeModerate')}
             </h3>
           </div>
           <div>
             <label className="block text-sm font-semibold text-[#2F3A45] mb-3">
-              {'How many days before check-in can guests cancel for free?'}
+              {t('addListing.cancellation.moderateQuestion')}
             </label>
             <div className="relative">
               <input
                 type="number"
                 min="5"
                 max="30"
-                title="Free cancellation days"
+                title={t('addListing.cancellation.freeCancellationDays')}
                 value={listing.cancellationPolicy.freeCancellationDays || ''}
                 onKeyDown={blockArabicNumeralKey}
                 onChange={(e) => {
@@ -221,14 +223,14 @@ export function CancellationPolicyStep({
                   setListing({ ...listing, cancellationPolicy: { ...listing.cancellationPolicy!, freeCancellationDays: clamped } });
                 }}
                 className="block w-full pl-6 pr-16 h-[60px] border-2 border-[#F0F2F5] rounded-2xl text-base font-medium text-[#2F3A45] focus:ring-2 focus:ring-[#FCC519] focus:border-transparent outline-none bg-white"
-                placeholder="e.g. 5"
+                placeholder={t('addListing.cancellation.moderatePlaceholder')}
               />
               <span className="absolute right-6 top-1/2 -translate-y-1/2 text-sm font-medium text-[#5E5E5E]">
-                {'days'}
+                {t('addListing.cancellation.days')}
               </span>
             </div>
             <p className="mt-3 text-xs text-[#5E5E5E]">
-              {'Choose between 5 and 30 days before check-in'}
+              {t('addListing.cancellation.moderateRange')}
             </p>
           </div>
         </div>

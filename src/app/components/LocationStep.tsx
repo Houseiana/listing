@@ -9,6 +9,7 @@ import {
   stripNegativeSign,
   blockNonPositiveNumeralKey,
 } from '@/lib/utils/numeric-input';
+import { useTranslation } from '@/lib/i18n/context';
 
 interface LocationStepProps {
   listing: PropertyFormData;
@@ -78,6 +79,7 @@ export const LocationStep = ({
   validationErrors = {},
   hasAttemptedNext = false,
 }: LocationStepProps) => {
+  const { t } = useTranslation();
   const { countries } = useCountries();
   const selectedCountryName =
     countries.find((c) => String(c.id) === String(listing.country))?.name || '';
@@ -92,8 +94,10 @@ export const LocationStep = ({
   // District IDs 418-425 are rural areas → label "Village", otherwise "Neighborhood"
   const selectedCityId = Number(listing.city);
   const isRuralDistrict = selectedCityId >= 418 && selectedCityId <= 425;
-  const villageLabelText = isRuralDistrict ? 'Village' : 'Neighborhood';
-  const areaLabelText = isRuralDistrict ? 'Gate' : 'Area';
+  const villageLabelText = isRuralDistrict ? t('addListing.location.village') : t('addListing.location.neighborhood');
+  const areaLabelText = isRuralDistrict ? t('addListing.location.gate') : t('addListing.location.area');
+  const selectVillageLabel = isRuralDistrict ? t('addListing.location.selectVillage') : t('addListing.location.selectNeighborhood');
+  const enterAreaPlaceholder = isRuralDistrict ? t('addListing.location.enterGate') : t('addListing.location.enterArea');
   const addressInputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   // Always-fresh refs so the place_changed listener never reads stale data
@@ -381,35 +385,35 @@ export const LocationStep = ({
     <div className="space-y-6">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          {'Search for address'}
+          {t('addListing.location.searchAddress')}
           <span className="text-gray-400 text-xs ml-2">
-            {'Start typing for suggestions'}
+            {t('addListing.location.startTypingHint')}
           </span>
         </label>
         <input
           ref={addressInputRef}
           type="text"
           disabled={readOnly}
-          placeholder="Start typing your address..."
+          placeholder={t('addListing.location.startTypingPlaceholder')}
           className={`w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none text-lg ${
             readOnly ? 'bg-gray-100 cursor-not-allowed' : ''
           }`}
         />
         <p className="text-xs text-gray-500 mt-2">
           <Info className="w-3 h-3 inline mr-1" />
-          {'Select an address from suggestions to auto-fill the form'}
+          {t('addListing.location.selectFromSuggestionsHint')}
         </p>
       </div>
 
       <div className="border-t border-gray-200 pt-6">
         <h3 className="text-sm font-medium text-gray-700 mb-4">
-          {'Or enter manually'}
+          {t('addListing.location.orEnterManually')}
         </h3>
 
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {'Country / Region'}<span className="text-red-500 ml-1">*</span>
+              {t('addListing.location.country')}<span className="text-red-500 ml-1">*</span>
             </label>
             <select
               value={listing.country}
@@ -454,7 +458,7 @@ export const LocationStep = ({
                 readOnly ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''
               }`}
             >
-              <option value="">{"Select country"}</option>
+              <option value="">{t('addListing.location.selectCountry')}</option>
               {countries.map((country) => (
                 <option key={country.id} value={country.id}>
                   {country.name}
@@ -465,10 +469,10 @@ export const LocationStep = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {'State / Province'}<span className="text-red-500 ml-1">*</span>
+              {t('addListing.location.state')}<span className="text-red-500 ml-1">*</span>
             </label>
             <select
-              title="State / Province"
+              title={t('addListing.location.state')}
               value={listing.state}
               disabled={!listing.country || readOnly}
               onChange={(e) =>
@@ -487,7 +491,7 @@ export const LocationStep = ({
                   : ''
               }`}
             >
-              <option value="">{"Select state"}</option>
+              <option value="">{t('addListing.location.selectState')}</option>
               {states.map((s: any) => (
                 <option key={s.id} value={s.id}>
                   {s.name}
@@ -498,10 +502,10 @@ export const LocationStep = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {'District'}<span className="text-red-500 ml-1">*</span>
+              {t('addListing.location.district')}<span className="text-red-500 ml-1">*</span>
             </label>
             <select
-              title="District"
+              title={t('addListing.location.district')}
               disabled={!listing.state || readOnly || loadingCities}
               value={listing.city}
               onChange={(e) => {
@@ -522,7 +526,7 @@ export const LocationStep = ({
               }`}
             >
               <option value="">
-                {loadingCities ? 'Loading districts...' : 'Select district'}
+                {loadingCities ? t('addListing.location.loadingDistricts') : t('addListing.location.selectDistrict')}
               </option>
               {cities.map((city: any) => (
                 <option key={city.id} value={city.id}>
@@ -551,7 +555,7 @@ export const LocationStep = ({
                 }`}
               >
                 <option value="">
-                  {loadingVillages ? 'Loading...' : `Select ${villageLabelText}`}
+                  {loadingVillages ? t('addListing.location.loading') : selectVillageLabel}
                 </option>
                 {villages.map((v: any) => (
                   <option key={v.id} value={v.id}>
@@ -574,7 +578,7 @@ export const LocationStep = ({
                 onChange={(e) =>
                   setListing({ ...listing, area: e.target.value })
                 }
-                placeholder={`Enter ${areaLabelText}`}
+                placeholder={enterAreaPlaceholder}
                 className={`w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none text-lg ${
                   readOnly ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''
                 }`}
@@ -584,7 +588,7 @@ export const LocationStep = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {'Street Address'}<span className="text-red-500 ml-1">*</span>
+              {t('addListing.location.streetAddress')}<span className="text-red-500 ml-1">*</span>
             </label>
             <input
               type="text"
@@ -593,7 +597,7 @@ export const LocationStep = ({
               onChange={(e) =>
                 setListing({ ...listing, street: e.target.value })
               }
-              placeholder="Enter street address"
+              placeholder={t('addListing.location.enterStreetAddress')}
               className={`w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none text-lg ${
                 readOnly ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''
               }`}
@@ -603,7 +607,7 @@ export const LocationStep = ({
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {'Building Number'}
+                {t('addListing.location.buildingNumber')}
               </label>
               <input
                 type="text"
@@ -617,7 +621,7 @@ export const LocationStep = ({
                     buildingNumber: stripNegativeSign(stripArabicNumerals(e.target.value)),
                   })
                 }
-                placeholder="e.g. 12"
+                placeholder={t('addListing.location.buildingNumberPlaceholder')}
                 className={`w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none text-lg ${
                   readOnly ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''
                 }`}
@@ -625,7 +629,7 @@ export const LocationStep = ({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {'Floor Number'}
+                {t('addListing.location.floorNumber')}
               </label>
               <input
                 type="number"
@@ -639,7 +643,7 @@ export const LocationStep = ({
                     floorNumber: stripNegativeSign(stripArabicNumerals(e.target.value)),
                   })
                 }
-                placeholder="e.g. 3"
+                placeholder={t('addListing.location.floorNumberPlaceholder')}
                 className={`w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none text-lg ${
                   readOnly ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''
                 }`}
@@ -647,7 +651,7 @@ export const LocationStep = ({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {'Unit Number'}
+                {t('addListing.location.unitNumber')}
               </label>
               <input
                 type="text"
@@ -659,7 +663,7 @@ export const LocationStep = ({
                 onChange={(e) =>
                   setListing({ ...listing, unitNumber: stripNegativeSign(e.target.value) })
                 }
-                placeholder="e.g. 4A"
+                placeholder={t('addListing.location.unitNumberPlaceholder')}
                 className={`w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none text-lg ${
                   readOnly ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''
                 }`}
@@ -669,7 +673,7 @@ export const LocationStep = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {'Postal Code'}
+              {t('addListing.location.postalCode')}
               {isEgyptSelected && (
                 <span className="text-red-500 ml-1">*</span>
               )}
@@ -686,7 +690,7 @@ export const LocationStep = ({
                   postalCode: stripArabicNumerals(e.target.value),
                 })
               }
-              placeholder="Enter postal code"
+              placeholder={t('addListing.location.enterPostalCode')}
               className={`w-full px-4 py-4 border rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none ${
                 readOnly
                   ? 'bg-gray-100 cursor-not-allowed text-gray-500'
@@ -697,7 +701,7 @@ export const LocationStep = ({
             />
             {isEgyptSelected && hasAttemptedNext && !listing.postalCode && (
               <p className="text-xs text-red-500 mt-1">
-                {'Postal code is required for Egypt'}
+                {t('addListing.location.postalCodeRequiredEgypt')}
               </p>
             )}
           </div>
@@ -707,11 +711,11 @@ export const LocationStep = ({
       <div className="mt-8">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           <MapPin className="w-4 h-4 inline mr-1" />
-          {'Confirm address on map'}
+          {t('addListing.location.confirmAddressOnMap')}
         </label>
         <p className="text-xs text-gray-500 mb-2">
           <Info className="w-3 h-3 inline mr-1" />
-          {'Drag the pin or click on the map to adjust the location'}
+          {t('addListing.location.dragPinHint')}
         </p>
         <div className="h-80 bg-gray-100 rounded-2xl overflow-hidden border-2 border-gray-200">
           {isMapLoaded ? (
@@ -735,7 +739,7 @@ export const LocationStep = ({
                 <div className="w-12 h-12 text-primary-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg animate-pulse">
                   <MapPin className="w-6 h-6 text-white" />
                 </div>
-                <p className="text-gray-600 font-medium">{'Loading map...'}</p>
+                <p className="text-gray-600 font-medium">{t('addListing.location.loadingMap')}</p>
               </div>
             </div>
           )}
@@ -744,7 +748,7 @@ export const LocationStep = ({
           <p className="text-sm text-gray-500 mt-2 flex items-center gap-2">
             <Check className="w-4 h-4 text-green-500" />
             <span>
-              {'Location'}: {listing.street},{' '}
+              {t('addListing.location.locationLabel')}: {listing.street},{' '}
               {cities.find((c: any) => String(c.id) === String(listing.city))
                 ?.name || ''}{' '}
               {states.find((s: any) => String(s.id) === String(listing.state))
@@ -755,7 +759,7 @@ export const LocationStep = ({
           </p>
         )}
         <p className="text-xs text-gray-400 mt-1">
-          {'Coordinates'}: {listing.latitude.toFixed(6)},{' '}
+          {t('addListing.location.coordinates')}: {listing.latitude.toFixed(6)},{' '}
           {listing.longitude.toFixed(6)}
         </p>
       </div>

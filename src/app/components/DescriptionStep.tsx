@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { LookupsAPI } from "@/lib/api/backend-api";
 import { PropertyFormData } from "../types";
+import { useTranslation } from "@/lib/i18n/context";
 
 interface DescriptionStepProps {
   listing: PropertyFormData;
@@ -17,6 +18,7 @@ export const DescriptionStep = ({
   listing,
   setListing,
 }: DescriptionStepProps) => {
+  const { t } = useTranslation();
   const { getToken } = useAuth();
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +63,7 @@ export const DescriptionStep = ({
               description: e.target.value.slice(0, 500),
             })
           }
-          placeholder="You'll always remember your time at this unique place."
+          placeholder={t('addListing.title.uniquePlacePlaceholder')}
           rows={6}
           maxLength={500}
           className="w-full px-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none text-lg resize-none"
@@ -73,12 +75,12 @@ export const DescriptionStep = ({
 
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">
-          Highlight what makes your place special
+          {t('addListing.title.highlightSpecialHeading')}
         </h3>
-        <p className="text-gray-500 mb-4">Choose up to 2 highlights</p>
+        <p className="text-gray-500 mb-4">{t('addListing.title.chooseUpToTwo')}</p>
 
         {loading ? (
-          <div className="text-gray-500">Loading highlights...</div>
+          <div className="text-gray-500">{t('addListing.title.loadingHighlights')}</div>
         ) : (
           <div className="flex flex-wrap gap-3">
             {highlights.map((h) => {

@@ -5,23 +5,47 @@ import {
   Wifi,
   Tv,
   Utensils,
-  Shirt,
   Car,
   Snowflake,
   Briefcase,
   Waves,
   Sun,
   Flame,
-  Star,
   Dumbbell,
   Palmtree,
   Mountain,
   Droplets,
   AlertCircle,
   Shield,
+  Coffee,
+  Microwave,
+  Refrigerator,
+  Bath,
+  Bed,
+  Trees,
+  Wind,
+  Lock,
+  Camera,
+  Speaker,
+  Music,
+  ArrowUpDown,
+  Baby,
+  Cigarette,
+  CigaretteOff,
+  Sparkles,
+  ChefHat,
+  Wine,
+  Tent,
+  Bike,
+  Gamepad2,
+  WashingMachine,
+  PawPrint,
+  Phone,
+  Trash2,
   LucideIcon,
 } from 'lucide-react';
 import { LookupsAPI } from '@/lib/api/backend-api';
+import { useTranslation } from '@/lib/i18n/context';
 
 interface AmenitiesStepProps {
   listing: PropertyFormData;
@@ -29,53 +53,83 @@ interface AmenitiesStepProps {
   readOnly?: boolean;
 }
 
-const ICON_MAP: Record<string, LucideIcon> = {
-  Wifi: Wifi,
-  TV: Tv,
-  Kitchen: Utensils,
-  Washer: Shirt,
-  Parking: Car,
-  'Free parking on premises': Car,
-  'Air conditioning': Snowflake,
-  AC: Snowflake,
-  'Dedicated workspace': Briefcase,
-  Pool: Waves,
-  'Hot tub': Waves,
-  'Patio or balcony': Sun,
-  'BBQ grill': Flame,
-  'Fire pit': Flame,
-  'Pool table': Star,
-  'Indoor fireplace': Flame,
-  Piano: Star,
-  'Exercise equipment': Dumbbell,
-  'Lake access': Waves,
-  'Beach access': Palmtree,
-  'Ski-in/Ski-out': Mountain,
-  'Outdoor shower': Droplets,
-  'Smoke alarm': AlertCircle,
-  'First aid kit': Shield,
-  'Fire extinguisher': Shield,
-  'Carbon monoxide alarm': AlertCircle,
-  wifi: Wifi,
-  tv: Tv,
-  kitchen: Utensils,
-  washer: Shirt,
-  parking: Car,
-  pool: Waves,
-  gym: Dumbbell,
-};
-
 interface Amenity {
   id: string;
   name: string;
   icon?: string;
 }
 
+// Each entry: keywords (English + Arabic) → icon. First match wins, so put more
+// specific entries (e.g. "no smoking") before more general ones ("smoking").
+const ICON_KEYWORDS: Array<[string[], LucideIcon]> = [
+  [['no smoking', 'ممنوع التدخين'], CigaretteOff],
+  [['smoking', 'تدخين', 'مدخنين'], Cigarette],
+  [['wifi', 'wi-fi', 'انترنت', 'إنترنت', 'واى فاى', 'واي فاي'], Wifi],
+  [['tv', 'television', 'تليفزيون', 'تلفزيون', 'تلفاز'], Tv],
+  [['coffee', 'espresso', 'قهوة'], Coffee],
+  [['microwave', 'ميكروويف'], Microwave],
+  [['fridge', 'refrigerator', 'ثلاجة', 'تلاجة'], Refrigerator],
+  [['kitchen', 'cook', 'مطبخ'], Utensils],
+  [['chef', 'cooking class'], ChefHat],
+  [['wine', 'bar', 'نبيذ', 'بار'], Wine],
+  [['washer', 'washing machine', 'laundry', 'غسالة', 'مغسلة', 'غسيل'], WashingMachine],
+  [['parking', 'garage', 'موقف', 'كراج', 'جراج', 'سيارات', 'انتظار'], Car],
+  [['air conditioning', 'aircon', 'a/c', 'ac ', 'تكييف', 'مكيف'], Snowflake],
+  [['heat', 'heater', 'heating', 'تدفئة'], Wind],
+  [['fan', 'ventilation', 'مروحة'], Wind],
+  [['workspace', 'desk', 'office', 'مكتب', 'مساحة عمل'], Briefcase],
+  [['hot tub', 'jacuzzi', 'جاكوزى', 'جاكوزي'], Waves],
+  [['pool', 'swimming', 'مسبح', 'حمام سباحة', 'بسين', 'بركة'], Waves],
+  [['lake', 'river', 'بحيرة', 'نهر'], Waves],
+  [['beach', 'sea', 'شاطئ', 'بحر', 'كورنيش'], Palmtree],
+  [['ski', 'mountain', 'تزلج', 'جبل'], Mountain],
+  [['balcony', 'patio', 'terrace', 'شرفة', 'بلكونة', 'تراس'], Sun],
+  [['fireplace', 'fire pit', 'bonfire', 'موقد', 'مدفأة'], Flame],
+  [['bbq', 'grill', 'barbecue', 'شواية', 'شواء', 'مشوى'], Flame],
+  [['gym', 'exercise', 'fitness', 'workout', 'صالة رياضية', 'جيم', 'تمرين'], Dumbbell],
+  [['shower', 'دش'], Droplets],
+  [['bathtub', 'bath', 'حمام'], Bath],
+  [['bed', 'سرير'], Bed],
+  [['crib', 'baby', 'kid', 'طفل', 'مهد', 'أطفال'], Baby],
+  [['garden', 'yard', 'plant', 'حديقة', 'نباتات'], Trees],
+  [['camera', 'cctv', 'surveillance', 'كاميرا', 'مراقبة'], Camera],
+  [['lock', 'safe', 'security', 'قفل', 'خزنة', 'أمان'], Lock],
+  [['phone', 'هاتف', 'تليفون'], Phone],
+  [['speaker', 'sound system', 'سماعات', 'صوت'], Speaker],
+  [['music', 'piano', 'instrument', 'موسيقى', 'بيانو'], Music],
+  [['elevator', 'lift', 'مصعد', 'اسانسير', 'أسانسير'], ArrowUpDown],
+  [['cleaning', 'cleaner', 'تنظيف', 'نظافة'], Sparkles],
+  [['trash', 'garbage', 'waste', 'قمامة', 'زبالة', 'نفايات'], Trash2],
+  [['camping', 'tent', 'تخييم', 'خيمة'], Tent],
+  [['bike', 'bicycle', 'cycling', 'دراجة', 'عجلة'], Bike],
+  [['pets', 'pet ', 'dog', 'cat', 'حيوان', 'حيوانات', 'أليفة', 'كلب', 'قطة'], PawPrint],
+  [['game', 'pool table', 'play', 'ألعاب', 'لعبة', 'بلياردو'], Gamepad2],
+  [['smoke alarm', 'smoke detector', 'كاشف دخان', 'انذار دخان', 'إنذار دخان'], AlertCircle],
+  [['carbon monoxide', 'co alarm', 'كاشف غاز', 'كربون'], AlertCircle],
+  [['first aid', 'extinguisher', 'safety', 'إسعاف', 'إسعافات', 'سلامة', 'طفاية'], Shield],
+];
+
+const getAmenityIcon = (amenity: Amenity): LucideIcon => {
+  const candidates = [amenity.icon, amenity.name]
+    .filter((value): value is string => Boolean(value && value.trim()))
+    .map((value) => value.toLowerCase().trim());
+
+  for (const candidate of candidates) {
+    for (const [keywords, icon] of ICON_KEYWORDS) {
+      if (keywords.some((keyword) => candidate.includes(keyword.toLowerCase()))) {
+        return icon;
+      }
+    }
+  }
+  return Sparkles;
+};
+
 export const AmenitiesStep = ({
   listing,
   setListing,
   readOnly,
 }: AmenitiesStepProps) => {
+  const { t } = useTranslation();
   const { getToken } = useAuth();
   const [amenities, setAmenities] = useState<Amenity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,8 +161,7 @@ export const AmenitiesStep = ({
   };
 
   const renderAmenityButton = (amenity: Amenity) => {
-    const IconComponent =
-      ICON_MAP[amenity.name] || ICON_MAP[amenity.icon || ''] || Star;
+    const IconComponent = getAmenityIcon(amenity);
     const id = Number(amenity.id);
     const isSelected = listing.amenities.includes(id);
 
@@ -118,7 +171,7 @@ export const AmenitiesStep = ({
         key={amenity.id}
         onClick={() => !readOnly && toggleAmenity(id)}
         disabled={readOnly}
-        className={`w-full sm:w-[260px] h-[76px] px-4 rounded-2xl border-2 transition-all flex items-center gap-3.5 ${
+        className={`w-full h-[76px] px-4 rounded-2xl border-2 transition-all flex items-center gap-3.5 ${
           readOnly ? 'cursor-not-allowed opacity-70' : ''
         } ${
           isSelected
@@ -144,7 +197,7 @@ export const AmenitiesStep = ({
   if (loading) {
     return (
       <div className="py-20 text-center text-gray-500">
-        {'Loading amenities...'}
+        {t('addListing.amenities.loading')}
       </div>
     );
   }
@@ -153,9 +206,9 @@ export const AmenitiesStep = ({
     <div className="space-y-10">
       <div>
         <h3 className="text-base font-semibold text-[#2F3A45] mb-4">
-          {'Amenities'}
+          {t('addListing.amenities.heading')}
         </h3>
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {amenities.map((a) => renderAmenityButton(a))}
         </div>
       </div>

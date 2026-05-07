@@ -1,4 +1,13 @@
+import { defaultLocale, LOCALE_COOKIE, type Locale } from '@/lib/i18n/config';
+
 const API_BASE = process.env.NEXT_PUBLIC_BACKEND_API_URL || '';
+
+const getCurrentLocale = (): Locale => {
+  if (typeof document === 'undefined') return defaultLocale;
+  const match = document.cookie.match(new RegExp(`(?:^|; )${LOCALE_COOKIE}=([^;]+)`));
+  const value = match ? decodeURIComponent(match[1]) : '';
+  return value === 'en' || value === 'ar' ? value : defaultLocale;
+};
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -11,9 +20,12 @@ async function request<T = any>(
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   try {
+    const locale = getCurrentLocale();
     const res = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
       headers: {
+        'Lang': locale,
+        'X-Locale': locale,
         ...options.headers,
       },
     });

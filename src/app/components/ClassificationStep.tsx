@@ -1,5 +1,6 @@
 import { PropertyFormData } from '../types';
 import { Star } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/context';
 
 interface ClassificationStepProps {
   listing: PropertyFormData;
@@ -12,13 +13,14 @@ export function ClassificationStep({
   setListing,
   readOnly,
 }: ClassificationStepProps) {
+  const { t } = useTranslation();
   const options = [1, 2, 3, 4, 5];
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
-        <h2 className="text-2xl font-semibold mb-2">Classify your unit</h2>
-        <p className="text-gray-500">How would you rate your property?</p>
+        <h2 className="text-2xl font-semibold mb-2">{t('addListing.classification.heading')}</h2>
+        <p className="text-gray-500">{t('addListing.classification.subheading')}</p>
       </div>
 
       <div className="space-y-4">
@@ -58,7 +60,7 @@ export function ClassificationStep({
                     />
                   ))}
                 </span>
-                {rating} {rating === 1 ? 'Star' : 'Stars'}
+                {rating} {rating === 1 ? t('addListing.classification.star') : t('addListing.classification.stars')}
               </div>
             </div>
           </label>

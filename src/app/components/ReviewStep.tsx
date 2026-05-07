@@ -18,6 +18,7 @@ import {
   DoorOpen,
 } from 'lucide-react';
 import { useFileUrls } from '@/hooks/use-file-urls';
+import { useTranslation } from '@/lib/i18n/context';
 
 interface ReviewStepProps {
   listing: PropertyFormData;
@@ -25,6 +26,7 @@ interface ReviewStepProps {
 }
 
 export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
+  const { t } = useTranslation();
   const [firstPhotoUrl] = useFileUrls(
     listing.photos.length > 0 ? [listing.photos[0]] : []
   );
@@ -32,7 +34,7 @@ export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
   <div className="flex flex-col gap-[30px]">
     {/* Header */}
     <p className="text-xl font-medium text-black">
-      {'Review your listing before publishing'}
+      {t('addListing.review.heading')}
     </p>
 
     <div className="flex flex-col lg:flex-row gap-8">
@@ -67,7 +69,7 @@ export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
             <div className="flex items-center gap-1 text-[#5E5E5E]">
               <MapPin className="w-4 h-4" strokeWidth={1.5} />
               <span className="text-sm font-medium">
-                {listing.cityName || 'City'}
+                {listing.cityName || t('addListing.review.city')}
                 {listing.countryName || listing.country
                   ? `, ${listing.countryName || listing.country}`
                   : ''}
@@ -86,27 +88,27 @@ export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
             <div className="flex items-center gap-1.5">
               <Users className="w-4 h-4 text-[#606060]" strokeWidth={1.5} />
               <span className="text-sm font-medium text-[#5E5E5E]">
-                {`${listing.guests || 0} Guests`}
+                {`${listing.guests || 0} ${t('addListing.review.guests')}`}
               </span>
             </div>
 
             <div className="flex items-center gap-1.5">
               <DoorOpen className="w-4 h-4 text-[#606060]" strokeWidth={1.5} />
               <span className="text-sm font-medium text-[#5E5E5E]">
-                {`${listing.bedrooms || 0} Bedrooms`}
+                {`${listing.bedrooms || 0} ${t('addListing.review.bedrooms')}`}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
               <Bed className="w-4 h-4 text-[#606060]" strokeWidth={1.5} />
               <span className="text-sm font-medium text-[#5E5E5E]">
-                {`${listing.beds || 0} Beds`}
+                {`${listing.beds || 0} ${t('addListing.review.beds')}`}
               </span>
             </div>
 
             <div className="flex items-center gap-1.5">
               <Bath className="w-4 h-4 text-[#606060]" strokeWidth={1.5} />
               <span className="text-sm font-medium text-[#5E5E5E]">
-                {`${listing.bathrooms || 0} Bathrooms`}
+                {`${listing.bathrooms || 0} ${t('addListing.review.bathrooms')}`}
               </span>
             </div>
             {listing.area_size > 0 && (
@@ -125,20 +127,20 @@ export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
             <span className="text-lg font-bold text-[#1D242B]">
               {currency || 'EGP'} {listing.basePrice || 0}
             </span>
-            <span className="text-sm text-[#5E5E5E]">{"/ night"}</span>
+            <span className="text-sm text-[#5E5E5E]">{t('addListing.review.perNight')}</span>
             {listing.cleaningFee > 0 && (
               <span className="text-xs text-[#9CA3AF] ml-1">
-                {`+ ${currency || 'EGP'} ${listing.cleaningFee} cleaning fee`}
+                {t('addListing.review.cleaningFeeNote', { currency: currency || 'EGP', amount: listing.cleaningFee })}
               </span>
             )}
             {listing.electricalFee > 0 && (
               <span className="text-xs text-[#9CA3AF] ml-1">
-                {`+ ${currency || 'EGP'} ${listing.electricalFee} electrical fee`}
+                {t('addListing.review.electricalFeeNote', { currency: currency || 'EGP', amount: listing.electricalFee })}
               </span>
             )}
             {listing.waterFee > 0 && (
               <span className="text-xs text-[#9CA3AF] ml-1">
-                {`+ ${currency || 'EGP'} ${listing.waterFee} water fee`}
+                {t('addListing.review.waterFeeNote', { currency: currency || 'EGP', amount: listing.waterFee })}
               </span>
             )}
           </div>
@@ -151,7 +153,7 @@ export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
         {listing.description && (
           <div className="bg-[#F8F9FA] rounded-2xl p-4 flex flex-col gap-1">
             <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wide">
-              {"DESCRIPTION"}
+              {t('addListing.review.descriptionLabel')}
             </span>
             <p className="text-sm text-[#2F3A45] leading-relaxed line-clamp-4">
               {listing.description}
@@ -165,7 +167,7 @@ export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
           {(listing.checkInTime || listing.checkOutTime) && (
             <div className="bg-[#F8F9FA] rounded-2xl p-4 flex flex-col gap-2">
               <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wide">
-                {"CHECK-IN / CHECKOUT"}
+                {t('addListing.review.checkInOutLabel')}
               </span>
               <div className="flex flex-col gap-1">
                 {listing.checkInTime && (
@@ -175,7 +177,7 @@ export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
                       strokeWidth={1.5}
                     />
                     <span className="text-sm text-[#2F3A45]">
-                      {`In: ${listing.checkInTime}`}
+                      {t('addListing.review.checkInPrefix', { time: listing.checkInTime })}
                     </span>
                   </div>
                 )}
@@ -186,7 +188,7 @@ export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
                       strokeWidth={1.5}
                     />
                     <span className="text-sm text-[#2F3A45]">
-                      {`Out: ${listing.checkOutTime}`}
+                      {t('addListing.review.checkOutPrefix', { time: listing.checkOutTime })}
                     </span>
                   </div>
                 )}
@@ -198,7 +200,7 @@ export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
           {listing.cancellationPolicy?.policyType && (
             <div className="bg-[#F8F9FA] rounded-2xl p-4 flex flex-col gap-2">
               <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wide">
-                {"CANCELLATION"}
+                {t('addListing.review.cancellationLabel')}
               </span>
               <div className="flex items-center gap-1.5">
                 <Shield
@@ -207,22 +209,22 @@ export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
                 />
                 <span className="text-sm text-[#2F3A45] capitalize">
                   {listing.cancellationPolicy.policyType === 'FLEXIBLE'
-                    ? 'Flexible'
+                    ? t('addListing.review.flexible')
                     : listing.cancellationPolicy.policyType === 'MODERATE'
-                      ? 'Moderate'
-                      : 'Fixed'}
+                      ? t('addListing.review.moderate')
+                      : t('addListing.review.fixed')}
                 </span>
               </div>
               {listing.cancellationPolicy.policyType === 'FLEXIBLE' &&
                 listing.cancellationPolicy.freeCancellationHours && (
                   <span className="text-xs text-[#9CA3AF]">
-                    {`Free cancellation within ${listing.cancellationPolicy.freeCancellationHours} hours`}
+                    {t('addListing.review.freeCancelHours', { hours: listing.cancellationPolicy.freeCancellationHours })}
                   </span>
                 )}
               {listing.cancellationPolicy.policyType === 'MODERATE' &&
                 listing.cancellationPolicy.freeCancellationDays && (
                   <span className="text-xs text-[#9CA3AF]">
-                    {`Free cancellation up to ${listing.cancellationPolicy.freeCancellationDays} days before`}
+                    {t('addListing.review.freeCancelDays', { days: listing.cancellationPolicy.freeCancellationDays })}
                   </span>
                 )}
             </div>
@@ -231,12 +233,12 @@ export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
           {/* Booking settings */}
           <div className="bg-[#F8F9FA] rounded-2xl p-4 flex flex-col gap-2">
             <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wide">
-              {"BOOKING"}
+              {t('addListing.review.bookingLabel')}
             </span>
             <div className="flex items-center gap-1.5">
               <Zap className="w-3.5 h-3.5 text-[#606060]" strokeWidth={1.5} />
               <span className="text-sm text-[#2F3A45]">
-                {listing.instantBook ? 'Instant Book enabled' : 'Request to book'}
+                {listing.instantBook ? t('addListing.review.instantBookEnabled') : t('addListing.review.requestToBook')}
               </span>
             </div>
           </div>
@@ -245,7 +247,7 @@ export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
           {(listing.weeklyDiscount > 0 || listing.newListingDiscount > 0) && (
             <div className="bg-[#F8F9FA] rounded-2xl p-4 flex flex-col gap-2">
               <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wide">
-                {"DISCOUNTS"}
+                {t('addListing.review.discountsLabel')}
               </span>
               <div className="flex flex-col gap-1">
                 {listing.newListingDiscount > 0 && (
@@ -255,7 +257,7 @@ export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
                       strokeWidth={1.5}
                     />
                     <span className="text-sm text-[#2F3A45]">
-                      {`New listing: ${listing.newListingDiscount}% off`}
+                      {t('addListing.review.newListingDiscount', { percent: listing.newListingDiscount })}
                     </span>
                   </div>
                 )}
@@ -266,7 +268,7 @@ export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
                       strokeWidth={1.5}
                     />
                     <span className="text-sm text-[#2F3A45]">
-                      {`Weekly: ${listing.weeklyDiscount}% off`}
+                      {t('addListing.review.weeklyDiscount', { percent: listing.weeklyDiscount })}
                     </span>
                   </div>
                 )}
@@ -278,13 +280,13 @@ export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
         {/* House rules */}
         <div className="bg-[#F8F9FA] rounded-2xl p-4 flex flex-col gap-2">
           <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wide">
-            House Rules
+            {t('addListing.review.houseRulesLabel')}
           </span>
           <div className="flex flex-wrap gap-2">
             {[
-              { label: 'Pets', allowed: listing.allowPets },
-              { label: 'Smoking', allowed: listing.allowSmoking },
-              { label: 'Events', allowed: listing.allowParties },
+              { label: t('addListing.review.pets'), allowed: listing.allowPets },
+              { label: t('addListing.review.smoking'), allowed: listing.allowSmoking },
+              { label: t('addListing.review.events'), allowed: listing.allowParties },
             ].map(({ label, allowed }) => (
               <span
                 key={label}
@@ -307,23 +309,23 @@ export const ReviewStep = ({ listing, currency }: ReviewStepProps) => {
 
     {/* What's next */}
     <div className="flex flex-col gap-5">
-      <h3 className="text-xl font-bold text-[#1D242B]">{"What's next?"}</h3>
+      <h3 className="text-xl font-bold text-[#1D242B]">{t('addListing.review.whatsNext')}</h3>
       <div className="flex gap-5">
         {[
           {
             icon: Check,
-            title: 'Confirm and publish',
-            desc: 'Your listing will be reviewed and published shortly.',
+            title: t('addListing.review.confirmPublishTitle'),
+            desc: t('addListing.review.confirmPublishDesc'),
           },
           {
             icon: Calendar,
-            title: 'Set your calendar',
-            desc: 'Choose which dates your property is available for booking.',
+            title: t('addListing.review.setCalendarTitle'),
+            desc: t('addListing.review.setCalendarDesc'),
           },
           {
             icon: Settings,
-            title: 'Adjust your settings',
-            desc: 'Fine-tune pricing, rules, and other details anytime.',
+            title: t('addListing.review.adjustSettingsTitle'),
+            desc: t('addListing.review.adjustSettingsDesc'),
           },
         ].map((item) => (
           <div key={item.title} className="flex-1 flex flex-col gap-4">

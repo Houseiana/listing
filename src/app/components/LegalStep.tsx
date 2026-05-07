@@ -3,6 +3,7 @@ import { Zap, AlertCircle, Phone, CalendarDays } from 'lucide-react';
 import { useMemo } from 'react';
 import { countries as countryList } from '@/lib/countries';
 import { blockArabicNumeralKey, stripArabicNumerals } from '@/lib/utils/numeric-input';
+import { useTranslation } from '@/lib/i18n/context';
 
 interface LegalStepProps {
   listing: PropertyFormData;
@@ -19,6 +20,7 @@ export const LegalStep = ({
   countryName,
   validationErrors = {},
 }: LegalStepProps) => {
+  const { t } = useTranslation();
   // Auto-detect dial code from selected country
   const dialCode = useMemo(() => {
     if (!countryName) return '+974'; // Default Qatar
@@ -33,7 +35,7 @@ export const LegalStep = ({
     {/* Phone Numbers Section */}
     <div className="flex flex-col gap-5">
       <h3 className="text-base font-bold text-[#1D242B]">
-        {'Contact Information'}
+        {t('addListing.legal.contactInformation')}
       </h3>
 
       {/* Primary Phone (WhatsApp) - Required */}
@@ -42,12 +44,12 @@ export const LegalStep = ({
           <div className="flex items-center gap-2">
             <Phone className="w-4 h-4 text-[#1D242B]" />
             <h4 className="text-lg font-bold text-[#1D242B]">
-              {'Phone Number'}
+              {t('addListing.legal.phoneNumber')}
             </h4>
             <span className="text-xs text-red-500">*</span>
           </div>
           <p className="text-sm text-[#5E5E5E] leading-[1.625]">
-            {'Your WhatsApp number for guest communication'}
+            {t('addListing.legal.phoneNumberHint')}
           </p>
           <div className="flex items-stretch mt-1">
             <div className="flex items-center px-4 bg-[#F0F2F5] border-2 border-e-0 border-[#F0F2F5] rounded-s-xl text-sm font-medium text-[#5E5E5E] select-none min-w-[80px] justify-center">
@@ -63,7 +65,7 @@ export const LegalStep = ({
                 !readOnly && setListing({ ...listing, phoneNumber: val });
               }}
               disabled={readOnly}
-              placeholder="Enter phone number"
+              placeholder={t('addListing.legal.enterPhoneNumber')}
               className={`flex-1 px-4 py-3 border-2 rounded-e-xl text-sm text-[#1D242B] placeholder:text-[#B0B8C1] focus:outline-none focus:border-[#FCC519] transition-colors ${
                 validationErrors.phoneNumber ? 'border-red-400' : 'border-[#F0F2F5]'
               } ${readOnly ? 'bg-gray-50 cursor-not-allowed' : ''}`}
@@ -81,12 +83,12 @@ export const LegalStep = ({
           <div className="flex items-center gap-2">
             <Phone className="w-4 h-4 text-[#1D242B]" />
             <h4 className="text-lg font-bold text-[#1D242B]">
-              {'Emergency Phone'}
+              {t('addListing.legal.emergencyPhone')}
             </h4>
-            <span className="text-xs text-[#5E5E5E]">(Optional)</span>
+            <span className="text-xs text-[#5E5E5E]">{t('addListing.legal.optionalParens')}</span>
           </div>
           <p className="text-sm text-[#5E5E5E] leading-[1.625]">
-            {'A backup number for emergencies'}
+            {t('addListing.legal.emergencyPhoneHint')}
           </p>
           <div className="flex items-stretch mt-1">
             <div className="flex items-center px-4 bg-[#F0F2F5] border-2 border-e-0 border-[#F0F2F5] rounded-s-xl text-sm font-medium text-[#5E5E5E] select-none min-w-[80px] justify-center">
@@ -102,7 +104,7 @@ export const LegalStep = ({
                 !readOnly && setListing({ ...listing, emergencyPhoneNumber: val });
               }}
               disabled={readOnly}
-              placeholder="Enter emergency phone number"
+              placeholder={t('addListing.legal.enterEmergencyPhoneNumber')}
               className={`flex-1 px-4 py-3 border-2 border-[#F0F2F5] rounded-e-xl text-sm text-[#1D242B] placeholder:text-[#B0B8C1] focus:outline-none focus:border-[#FCC519] transition-colors ${
                 readOnly ? 'bg-gray-50 cursor-not-allowed' : ''
               }`}
@@ -117,13 +119,13 @@ export const LegalStep = ({
       {/* Instant Book Section */}
       <div className="flex flex-col gap-5">
         <h3 className="text-base font-bold text-[#1D242B]">
-          {'Booking Settings'}
+          {t('addListing.legal.bookingSettings')}
         </h3>
         <div className="flex items-center justify-between p-[34px] border-2 border-[#F0F2F5] rounded-2xl bg-white">
           <div className="flex flex-col gap-1.5 pe-8">
             <div className="flex items-center gap-2">
               <h4 className="text-lg font-bold text-[#1D242B]">
-                {'Instant Book'}
+                {t('addListing.legal.instantBook')}
               </h4>
               <Zap
                 className="w-4 h-4 text-[#FCC519]"
@@ -131,12 +133,12 @@ export const LegalStep = ({
               />
             </div>
             <p className="text-sm text-[#5E5E5E] leading-[1.625]">
-              {'Allow guests to book instantly without waiting for your approval'}
+              {t('addListing.legal.instantBookHint')}
             </p>
           </div>
           <button
             type="button"
-            title="Toggle instant book"
+            title={t('addListing.legal.toggleInstantBook')}
             onClick={() =>
               !readOnly &&
               setListing({ ...listing, instantBook: !listing.instantBook })
@@ -162,16 +164,16 @@ export const LegalStep = ({
             <div className="flex items-center gap-2">
               <CalendarDays className="w-4 h-4 text-[#1D242B]" />
               <h4 className="text-lg font-bold text-[#1D242B]">
-                {'Minimum Days For Booking'}
+                {t('addListing.legal.minimumDaysForBooking')}
               </h4>
             </div>
             <p className="text-sm text-[#5E5E5E] leading-[1.625]">
-              {'The minimum number of nights a guest must book in a single reservation'}
+              {t('addListing.legal.minimumDaysHint')}
             </p>
             <div className="flex items-center gap-3 mt-1">
               <button
                 type="button"
-                title="Decrease minimum days"
+                title={t('addListing.legal.decreaseMinimumDays')}
                 onClick={() => {
                   if (readOnly) return;
                   const current = Number(listing.minimumDaysForBooking) || 1;
@@ -208,7 +210,7 @@ export const LegalStep = ({
               />
               <button
                 type="button"
-                title="Increase minimum days"
+                title={t('addListing.legal.increaseMinimumDays')}
                 onClick={() => {
                   if (readOnly) return;
                   const current = Number(listing.minimumDaysForBooking) || 1;
@@ -221,7 +223,7 @@ export const LegalStep = ({
               >
                 {'+'}
               </button>
-              <span className="text-sm text-[#5E5E5E]">{'nights'}</span>
+              <span className="text-sm text-[#5E5E5E]">{t('addListing.legal.nights')}</span>
             </div>
           </div>
         </div>
@@ -230,20 +232,20 @@ export const LegalStep = ({
       {/* Security & Noise Section */}
       <div className="flex flex-col gap-5">
         <h3 className="text-base font-bold text-[#1D242B]">
-          {'Security & Noise'}
+          {t('addListing.legal.securityNoise')}
         </h3>
         <div className="flex items-center justify-between p-[34px] border-2 border-[#F0F2F5] rounded-2xl bg-white">
           <div className="flex flex-col gap-1.5 pe-8">
             <h4 className="text-lg font-bold text-[#1D242B]">
-              {'Security Camera'}
+              {t('addListing.legal.securityCamera')}
             </h4>
             <p className="text-sm text-[#5E5E5E] leading-[1.625]">
-              {'Let guests know if you have security cameras on the property'}
+              {t('addListing.legal.securityCameraHint')}
             </p>
           </div>
           <button
             type="button"
-            title="Toggle security camera"
+            title={t('addListing.legal.toggleSecurityCamera')}
             onClick={() =>
               !readOnly &&
               setListing({
@@ -271,15 +273,15 @@ export const LegalStep = ({
       <div className="flex items-center justify-between p-[34px] border-2 border-[#F0F2F5] rounded-2xl bg-white">
         <div className="flex flex-col gap-1.5 pe-8">
           <h4 className="text-lg font-bold text-[#1D242B]">
-            {'Noise Monitor'}
+            {t('addListing.legal.noiseMonitor')}
           </h4>
           <p className="text-sm text-[#5E5E5E] leading-[1.625]">
-            {'Let guests know if you have a noise monitoring device'}
+            {t('addListing.legal.noiseMonitorHint')}
           </p>
         </div>
         <button
           type="button"
-          title="Toggle noise monitor"
+          title={t('addListing.legal.toggleNoiseMonitor')}
           onClick={() =>
             !readOnly &&
             setListing({
@@ -312,10 +314,10 @@ export const LegalStep = ({
         />
         <div className="flex flex-col gap-1.5">
           <h4 className="text-sm font-bold text-[#1D242B]">
-            {'Important Disclosure'}
+            {t('addListing.legal.importantDisclosure')}
           </h4>
           <p className="text-[13px] text-[#5E5E5E] leading-[1.625]">
-            {'You are required to disclose all surveillance devices on or near your property. Failure to do so may result in removal from the platform.'}
+            {t('addListing.legal.disclosureText')}
           </p>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { Counter } from './Counter';
 import { PropertyFormData } from '../types';
 import { Users, DoorOpen, BedDouble, Bath, Expand } from 'lucide-react';
 import { stripArabicNumerals, blockArabicNumeralKey } from '@/lib/utils/numeric-input';
+import { useTranslation } from '@/lib/i18n/context';
 
 interface BasicsStepProps {
   listing: PropertyFormData;
@@ -22,6 +23,7 @@ export function BasicsStep({
   onBatchUpdate,
   readOnly,
 }: BasicsStepProps) {
+  const { t } = useTranslation();
   const guests = listing.guests || 1;
   const bedrooms = listing.bedrooms || 1;
   const beds = listing.beds || 1;
@@ -67,8 +69,8 @@ export function BasicsStep({
   return (
     <div className="border border-[#F0F2F5] rounded-2xl py-4">
       <Counter
-        label="Guests"
-        sublabel="Maximum number of guests"
+        label={t('addListing.basics.guests')}
+        sublabel={t('addListing.basics.guestsHint')}
         value={guests}
         field="guests"
         min={minGuests}
@@ -78,8 +80,8 @@ export function BasicsStep({
       />
       <div className="mx-6 h-px bg-[#F0F2F5]" />
       <Counter
-        label="Bedrooms"
-        sublabel="Number of bedrooms"
+        label={t('addListing.basics.bedrooms')}
+        sublabel={t('addListing.basics.bedroomsHint')}
         value={bedrooms}
         field="bedrooms"
         min={minBedrooms}
@@ -89,8 +91,8 @@ export function BasicsStep({
       />
       <div className="mx-6 h-px bg-[#F0F2F5]" />
       <Counter
-        label="Beds"
-        sublabel="Number of beds"
+        label={t('addListing.basics.beds')}
+        sublabel={t('addListing.basics.bedsHint')}
         value={beds}
         field="beds"
         min={minBeds}
@@ -100,8 +102,8 @@ export function BasicsStep({
       />
       <div className="mx-6 h-px bg-[#F0F2F5]" />
       <Counter
-        label="Bathrooms"
-        sublabel="Number of bathrooms"
+        label={t('addListing.basics.bathrooms')}
+        sublabel={t('addListing.basics.bathroomsHint')}
         value={bathrooms}
         field="bathrooms"
         min={minBathrooms}
@@ -116,15 +118,15 @@ export function BasicsStep({
             <Expand className="w-[18px] h-[18px] text-[#5E5E5E]" />
           </div>
           <div className="flex flex-col gap-0.5">
-            <span className="text-base font-semibold text-[#2F3A45]">{"Total Area"}</span>
-            <p className="text-xs text-[#9CA3AF]">{"Size of the property in square meters"}</p>
+            <span className="text-base font-semibold text-[#2F3A45]">{t('addListing.basics.totalArea')}</span>
+            <p className="text-xs text-[#9CA3AF]">{t('addListing.basics.totalAreaHint')}</p>
             <span className="text-xs text-pink-500 mt-1">{`${minAreaSize} - ${maxAreaSize} m²`}</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <input
             type="number"
-            title="Total area in square meters"
+            title={t('addListing.basics.totalAreaTitle')}
             value={areaInput}
             min={minAreaSize}
             max={maxAreaSize}

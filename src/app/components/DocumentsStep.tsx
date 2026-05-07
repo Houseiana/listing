@@ -1,5 +1,6 @@
 import { PropertyFormData } from '../types';
 import { Upload, X, CheckCircle, Building2, User } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/context';
 
 interface DocumentsStepProps {
   listing: PropertyFormData;
@@ -12,6 +13,7 @@ export const DocumentsStep = ({
   setListing,
   readOnly,
 }: DocumentsStepProps) => {
+  const { t } = useTranslation();
   const handleFileChange = (
     field: keyof typeof listing.documentOfProperty,
     file: File | null
@@ -49,7 +51,7 @@ export const DocumentsStep = ({
         <div className="flex flex-col gap-1">
           <h3 className="text-[17px] font-bold text-[#1D242B]">
             {label}
-            {optional && <span className="text-sm font-normal text-[#9CA3AF] ms-2">Optional</span>}
+            {optional && <span className="text-sm font-normal text-[#9CA3AF] ms-2">{t('addListing.documents.optional')}</span>}
           </h3>
           <p className="text-sm text-[#5E5E5E]">{description}</p>
         </div>
@@ -72,14 +74,14 @@ export const DocumentsStep = ({
                   <p className="text-xs text-[#5E5E5E]">{fileSize}</p>
                 )}
                 {isUrl && (
-                  <p className="text-xs text-[#9CA3AF]">{"Uploaded previously"}</p>
+                  <p className="text-xs text-[#9CA3AF]">{t('addListing.documents.uploadedPreviously')}</p>
                 )}
               </div>
             </div>
             <button
               onClick={() => handleFileChange(field, null)}
               disabled={readOnly}
-              title={`Remove ${label}`}
+              title={`${t('addListing.documents.removeFile')} ${label}`}
               className={`p-1.5 rounded-full transition-colors ${
                 readOnly
                   ? 'cursor-not-allowed opacity-50'
@@ -103,10 +105,10 @@ export const DocumentsStep = ({
               </div>
               <div className="flex flex-col items-center gap-1">
                 <p className="text-sm font-semibold text-[#1D242B] text-center">
-                  {'Click to upload'}
+                  {t('addListing.documents.clickToUpload')}
                 </p>
                 <p className="text-xs text-[#9CA3AF] text-center">
-                  {'PDF, JPG, JPEG, or PNG'}
+                  {t('addListing.documents.fileTypesHint')}
                 </p>
               </div>
             </div>
@@ -130,7 +132,7 @@ export const DocumentsStep = ({
   return (
     <div className="flex flex-col gap-5">
       <p className="text-base font-bold text-[#1D242B]">
-        {'Upload your property documents'}
+        {t('addListing.documents.heading')}
       </p>
 
       <div className="flex flex-col gap-6">
@@ -145,16 +147,16 @@ export const DocumentsStep = ({
                   <User className="w-4 h-4 text-[#1D242B]" />
                 )}
                 <h3 className="text-[17px] font-bold text-[#1D242B]">
-                  {listing.managedBy ? 'Hosted by Houseiana' : 'Hosted by owner'}
+                  {listing.managedBy ? t('addListing.documents.hostedByHouseiana') : t('addListing.documents.hostedByOwner')}
                 </h3>
               </div>
               <p className="text-sm text-[#5E5E5E]">
-                {'Switch on to let Houseiana manage and host this property for you'}
+                {t('addListing.documents.managedByHint')}
               </p>
             </div>
             <button
               type="button"
-              title="Toggle managed by"
+              title={t('addListing.documents.toggleManagedBy')}
               onClick={() =>
                 !readOnly &&
                 setListing({
@@ -177,38 +179,38 @@ export const DocumentsStep = ({
           <div className="bg-[#FCF9EE] border border-[rgba(247,232,176,0.5)] rounded-xl p-4">
             <p className="text-[13px] text-[#5E5E5E] leading-[1.625]">
               {listing.managedBy
-                ? 'Houseiana team will handle guest communication, check-in, cleaning, and day-to-day operations on your behalf.'
-                : 'You (the owner) will handle guest communication, check-in, and day-to-day operations yourself.'}
+                ? t('addListing.documents.managedByOnNote')
+                : t('addListing.documents.managedByOffNote')}
             </p>
           </div>
         </div>
 
         {renderUploadBox(
           'PrpopertyDocoument',
-          'Property Document',
-          'Upload your property ownership or lease document',
+          t('addListing.documents.propertyDocument'),
+          t('addListing.documents.propertyDocumentHint'),
           true
         )}
 
         {renderUploadBox(
           'HostId',
-          'Host ID',
-          'Upload a valid government-issued ID',
+          t('addListing.documents.hostId'),
+          t('addListing.documents.hostIdHint'),
           true
         )}
 
         <div className="border-2 border-[#F0F2F5] rounded-2xl px-[34px] py-6 flex items-center justify-between">
           <div className="flex flex-col gap-1 pr-4">
             <h3 className="text-[17px] font-bold text-[#1D242B]">
-              {'Are you the property owner?'}
+              {t('addListing.documents.areYouTheOwner')}
             </h3>
             <p className="text-sm text-[#5E5E5E]">
-              {'If not, you will need to upload a power of attorney'}
+              {t('addListing.documents.areYouTheOwnerHint')}
             </p>
           </div>
           <button
             type="button"
-            title="Toggle property owner"
+            title={t('addListing.documents.togglePropertyOwner')}
             onClick={() =>
               !readOnly &&
               setListing({
@@ -234,8 +236,8 @@ export const DocumentsStep = ({
         {!listing.isPropertyOwner &&
           renderUploadBox(
             'PowerOfAttorney',
-            'Power of Attorney',
-            'Upload the power of attorney document authorizing you to manage this property'
+            t('addListing.documents.powerOfAttorney'),
+            t('addListing.documents.powerOfAttorneyHint')
           )}
       </div>
     </div>

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { PropertyFormData } from '../types';
 import { Star, Pencil } from 'lucide-react';
 import { stripArabicNumerals, blockArabicNumeralKey } from '@/lib/utils/numeric-input';
+import { useTranslation } from '@/lib/i18n/context';
 
 interface PricingStepProps {
   listing: PropertyFormData;
@@ -16,6 +17,7 @@ export const PricingStep = ({
   readOnly,
   currency,
 }: PricingStepProps) => {
+  const { t } = useTranslation();
   const starOptions = [1, 2, 3, 4, 5];
   const isEGP = currency === 'EGP';
   const minBasePrice = isEGP ? 1000 : 20;
@@ -35,7 +37,7 @@ export const PricingStep = ({
       {/* Star Rating Section */}
       <div className="flex flex-col gap-4">
         <h3 className="text-base font-bold text-[#1D242B]">
-          {'Star Rating'}
+          {t('addListing.pricing.starRating')}
         </h3>
         <div className="flex flex-wrap gap-3">
           {starOptions.map((rating) => (
@@ -62,7 +64,7 @@ export const PricingStep = ({
                 }`}
               />
               <span className="text-sm font-semibold text-[#1D242B]">
-                {rating === 1 ? `${rating} Star` : `${rating} Stars`}
+                {rating === 1 ? `${rating} ${t('addListing.pricing.star')}` : `${rating} ${t('addListing.pricing.stars')}`}
               </span>
             </button>
           ))}
@@ -71,11 +73,11 @@ export const PricingStep = ({
 
       {/* Pricing Section */}
       <div className="flex flex-col gap-4">
-        <h3 className="text-base font-bold text-[#1D242B]">{"Set Your Price"}</h3>
+        <h3 className="text-base font-bold text-[#1D242B]">{t('addListing.pricing.setYourPrice')}</h3>
 
         {/* Main price card */}
         <div className="border border-[#F0F2F5] rounded-2xl p-[30px] flex flex-col items-center gap-5">
-          <p className="text-base text-[#5E5E5E]">{"You can change this anytime"}</p>
+          <p className="text-base text-[#5E5E5E]">{t('addListing.pricing.changeAnytime')}</p>
 
           {/* Price display */}
           <div className="flex flex-col items-center gap-3">
@@ -109,7 +111,7 @@ export const PricingStep = ({
             <div className="w-full h-[2px] bg-[#2F3A45]" />
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#2F3A45]">
-                {'NIGHTLY RATE'}
+                {t('addListing.pricing.nightlyRate')}
               </span>
               <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#2F3A45]">
                 {currency || 'USD'}
@@ -119,12 +121,12 @@ export const PricingStep = ({
 
           {listing.basePrice < minBasePrice && (
             <p className="text-red-500 text-sm font-medium">
-              {`Minimum price is ${currency || 'EGP'} ${minBasePrice.toLocaleString()}`}
+              {t('addListing.pricing.minimumPrice', { currency: currency || 'EGP', amount: minBasePrice.toLocaleString() })}
             </p>
           )}
           {listing.basePrice > maxBasePrice && (
             <p className="text-red-500 text-sm font-medium">
-              {`Maximum price is ${currency || 'EGP'} ${maxBasePrice.toLocaleString()}`}
+              {t('addListing.pricing.maximumPrice', { currency: currency || 'EGP', amount: maxBasePrice.toLocaleString() })}
             </p>
           )}
         </div>
@@ -135,10 +137,10 @@ export const PricingStep = ({
           <div className="bg-[#FCFCFC] border border-[#F0F2F5] rounded-2xl p-6 flex flex-col gap-6">
             <div>
               <h4 className="text-[15px] font-semibold text-[#1D242B]">
-                {'Cleaning Fee'}
+                {t('addListing.pricing.cleaningFee')}
               </h4>
               <p className="text-xs text-[#9CA3AF] mt-1">
-                {'One-time fee charged to guests for cleaning'}
+                {t('addListing.pricing.cleaningFeeHint')}
               </p>
             </div>
             <div className="flex items-center justify-between">
@@ -148,7 +150,7 @@ export const PricingStep = ({
                   type="number"
                   min="0"
                   max={maxCleaningFee}
-                  title="Cleaning fee amount"
+                  title={t('addListing.pricing.cleaningFeeAmount')}
                   value={listing.cleaningFee || ''}
                   disabled={readOnly}
                   onKeyDown={blockArabicNumeralKey}
@@ -170,14 +172,14 @@ export const PricingStep = ({
                 {!readOnly && <Pencil size={12} className="text-[#9CA3AF] group-focus-within:text-[#FCC519] transition-colors flex-shrink-0" />}
               </div>
               <span className="text-[10px] font-bold text-[#10B981] bg-[rgba(16,185,129,0.1)] px-3 py-1.5 rounded-full">
-                {'Optional'}
+                {t('addListing.pricing.optional')}
               </span>
             </div>
             {(listing.cleaningFee || 0) > maxCleaningFee && (
-              <p className="text-xs text-red-500 font-medium">{`Cleaning fee cannot exceed ${currency || 'EGP'} ${maxCleaningFee.toLocaleString()}`}</p>
+              <p className="text-xs text-red-500 font-medium">{t('addListing.pricing.cleaningFeeCannotExceed', { currency: currency || 'EGP', amount: maxCleaningFee.toLocaleString() })}</p>
             )}
             {isEGP && (listing.cleaningFee || 0) > (listing.basePrice || 0) && (listing.basePrice || 0) > 0 && (
-              <p className="text-xs text-red-500 font-medium">{'Cleaning fee cannot exceed the nightly rate'}</p>
+              <p className="text-xs text-red-500 font-medium">{t('addListing.pricing.cleaningFeeCannotExceedNightly')}</p>
             )}
           </div>
 
@@ -185,10 +187,10 @@ export const PricingStep = ({
           <div className="bg-[#FCFCFC] border border-[#F0F2F5] rounded-2xl p-6 flex flex-col gap-6">
             <div>
               <h4 className="text-[15px] font-semibold text-[#1D242B]">
-                {'Electrical Fee'}
+                {t('addListing.pricing.electricalFee')}
               </h4>
               <p className="text-xs text-[#9CA3AF] mt-1">
-                {'One-time fee charged to guests for electricity'}
+                {t('addListing.pricing.electricalFeeHint')}
               </p>
             </div>
             <div className="flex items-center justify-between">
@@ -198,7 +200,7 @@ export const PricingStep = ({
                   type="number"
                   min="0"
                   max={maxCleaningFee}
-                  title="Electrical fee amount"
+                  title={t('addListing.pricing.electricalFeeAmount')}
                   value={listing.electricalFee || ''}
                   disabled={readOnly}
                   onKeyDown={blockArabicNumeralKey}
@@ -215,7 +217,7 @@ export const PricingStep = ({
                 {!readOnly && <Pencil size={12} className="text-[#9CA3AF] group-focus-within:text-[#FCC519] transition-colors flex-shrink-0" />}
               </div>
               <span className="text-[10px] font-bold text-[#10B981] bg-[rgba(16,185,129,0.1)] px-3 py-1.5 rounded-full">
-                {'Optional'}
+                {t('addListing.pricing.optional')}
               </span>
             </div>
           </div>
@@ -224,10 +226,10 @@ export const PricingStep = ({
           <div className="bg-[#FCFCFC] border border-[#F0F2F5] rounded-2xl p-6 flex flex-col gap-6">
             <div>
               <h4 className="text-[15px] font-semibold text-[#1D242B]">
-                {'Water Fee'}
+                {t('addListing.pricing.waterFee')}
               </h4>
               <p className="text-xs text-[#9CA3AF] mt-1">
-                {'One-time fee charged to guests for water'}
+                {t('addListing.pricing.waterFeeHint')}
               </p>
             </div>
             <div className="flex items-center justify-between">
@@ -237,7 +239,7 @@ export const PricingStep = ({
                   type="number"
                   min="0"
                   max={maxCleaningFee}
-                  title="Water fee amount"
+                  title={t('addListing.pricing.waterFeeAmount')}
                   value={listing.waterFee || ''}
                   disabled={readOnly}
                   onKeyDown={blockArabicNumeralKey}
@@ -254,7 +256,7 @@ export const PricingStep = ({
                 {!readOnly && <Pencil size={12} className="text-[#9CA3AF] group-focus-within:text-[#FCC519] transition-colors flex-shrink-0" />}
               </div>
               <span className="text-[10px] font-bold text-[#10B981] bg-[rgba(16,185,129,0.1)] px-3 py-1.5 rounded-full">
-                {'Optional'}
+                {t('addListing.pricing.optional')}
               </span>
             </div>
           </div>
@@ -265,14 +267,14 @@ export const PricingStep = ({
               <div>
                 <div className="flex items-center gap-2">
                   <h4 className="text-[15px] font-semibold text-[#1D242B]">
-                    {'Weekend Surge'}
+                    {t('addListing.pricing.weekendSurge')}
                   </h4>
                   <span className="text-[10px] font-bold text-white bg-[#1D242B] px-2.5 py-1 rounded-full">
-                    {'Coming Soon'}
+                    {t('addListing.pricing.comingSoon')}
                   </span>
                 </div>
                 <p className="text-xs text-[#9CA3AF] mt-1">
-                  {'Charge more on weekends automatically'}
+                  {t('addListing.pricing.weekendSurgeHint')}
                 </p>
               </div>
             </div>
@@ -282,7 +284,7 @@ export const PricingStep = ({
                   type="number"
                   min="0"
                   max="100"
-                  title="Weekend surge percentage"
+                  title={t('addListing.pricing.weekendSurgePercentage')}
                   value={0}
                   disabled
                   className="text-lg font-semibold w-12 border-0 focus:ring-0 outline-none bg-transparent p-0 text-[#2F3A45] cursor-not-allowed"
@@ -290,7 +292,7 @@ export const PricingStep = ({
                 <span className="text-lg font-semibold text-[#2F3A45]">%</span>
               </div>
               <span className="text-[10px] font-bold text-[#10B981] bg-[rgba(16,185,129,0.1)] px-3 py-1.5 rounded-full">
-                {'Optional'}
+                {t('addListing.pricing.optional')}
               </span>
             </div>
           </div>

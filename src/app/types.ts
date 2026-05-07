@@ -62,7 +62,9 @@ export interface PropertyFormData {
   checkInTime: string;
   checkOutTime: string;
   phoneNumber: string;
+  phoneCountryCode: string;
   emergencyPhoneNumber: string;
+  emergencyPhoneCountryCode: string;
   isPropertyOwner: boolean;
   managedBy: boolean;
   documentOfProperty: DocumentOfProperty;

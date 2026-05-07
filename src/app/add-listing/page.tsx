@@ -11,6 +11,8 @@ import { MapPin, Navigation, PenLine, Search, User, UserPlus, X, ArrowLeft, Eye,
 import { stripArabicNumerals, blockArabicNumeralKey } from '@/lib/utils/numeric-input';
 import { countries as dialCountries } from '@/lib/countries';
 import { PropertyFormData } from '@/app/types';
+import { useTranslation } from '@/lib/i18n/context';
+import { LocaleSwitcher } from '@/app/components/LocaleSwitcher';
 import {
   PropertyTypeStep,
   LocationStep,
@@ -47,6 +49,7 @@ function AddListingPage() {
   const [newPropertyId, setNewPropertyId] = useState(propertyId);
   const { getToken, userId, isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const { countries } = useCountries();
+  const { t } = useTranslation();
 
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -153,25 +156,25 @@ function AddListingPage() {
     const password = newUserForm.password;
     const phone = newUserForm.phone.trim();
 
-    if (!firstName) errors.firstName = 'First name is required';
-    if (!lastName) errors.lastName = 'Last name is required';
+    if (!firstName) errors.firstName = t('addListing.validation.firstNameRequired');
+    if (!lastName) errors.lastName = t('addListing.validation.lastNameRequired');
     if (!email) {
-      errors.email = 'Email is required';
+      errors.email = t('addListing.validation.emailRequired');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.email = 'Enter a valid email address';
+      errors.email = t('addListing.validation.validEmail');
     }
     if (!password) {
-      errors.password = 'Password is required';
+      errors.password = t('addListing.validation.passwordRequired');
     } else if (password.length < 8) {
-      errors.password = 'Password must be at least 8 characters';
+      errors.password = t('addListing.validation.passwordMinLength');
     }
     if (!phone) {
-      errors.phone = 'Phone number is required';
+      errors.phone = t('addListing.validation.phoneRequired');
     } else if (phone.length < 6) {
-      errors.phone = 'Phone number is too short';
+      errors.phone = t('addListing.validation.phoneTooShort');
     }
     if (newUserForm.createByPhone === null) {
-      errors.createByPhone = 'Please select whether this user is owned by Houseiana';
+      errors.createByPhone = t('addListing.validation.selectOwnedByHouseiana');
     }
 
     if (Object.keys(errors).length > 0) {
@@ -186,8 +189,8 @@ function AddListingPage() {
       if (!token) {
         await Swal.fire({
           icon: 'error',
-          title: 'Authentication Required',
-          text: 'Please sign in to create a user.',
+          title: t('addListing.alerts.authRequired'),
+          text: t('addListing.alerts.authRequiredCreate'),
           confirmButtonColor: '#000',
         });
         return;
@@ -205,8 +208,8 @@ function AddListingPage() {
         if (!id) {
           await Swal.fire({
             icon: 'error',
-            title: 'Could not create user',
-            text: 'The server did not return a valid user. Please try again.',
+            title: t('addListing.alerts.couldNotCreateUser'),
+            text: t('addListing.alerts.noValidUser'),
             confirmButtonColor: '#000',
           });
           return;
@@ -217,18 +220,18 @@ function AddListingPage() {
         resetAddUserForm();
         await Swal.fire({
           icon: 'success',
-          title: 'User created',
-          text: `${fullName} has been added.`,
+          title: t('addListing.alerts.userCreated'),
+          text: t('addListing.alerts.userAdded', { name: fullName }),
           confirmButtonColor: '#10B981',
           timer: 1800,
           showConfirmButton: false,
         });
       } else {
         const errData = res.data as { message?: string } | undefined;
-        const message = errData?.message || res.error || 'Failed to create user. Please try again.';
+        const message = errData?.message || res.error || t('addListing.alerts.failedToCreateUser');
         await Swal.fire({
           icon: 'error',
-          title: 'Could not create user',
+          title: t('addListing.alerts.couldNotCreateUser'),
           text: message,
           confirmButtonColor: '#000',
         });
@@ -236,8 +239,8 @@ function AddListingPage() {
     } catch (e) {
       await Swal.fire({
         icon: 'error',
-        title: 'Could not create user',
-        text: e instanceof Error ? e.message : 'Something went wrong. Please try again.',
+        title: t('addListing.alerts.couldNotCreateUser'),
+        text: e instanceof Error ? e.message : t('addListing.alerts.somethingWentWrong'),
         confirmButtonColor: '#000',
       });
     } finally {
@@ -247,18 +250,18 @@ function AddListingPage() {
 
   const handleInviteUser = async () => {
     const { value: email, isConfirmed } = await Swal.fire<string>({
-      title: 'Invite user',
-      text: 'Enter the email address to send an invitation to.',
+      title: t('addListing.alerts.inviteUserTitle'),
+      text: t('addListing.alerts.inviteUserText'),
       input: 'email',
       inputPlaceholder: 'user@example.com',
       showCancelButton: true,
-      confirmButtonText: 'Send invitation',
+      confirmButtonText: t('addListing.alerts.sendInvitation'),
       confirmButtonColor: '#FCC519',
       cancelButtonColor: '#9CA3AF',
       inputValidator: (value) => {
         const v = (value || '').trim();
-        if (!v) return 'Email is required';
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'Enter a valid email address';
+        if (!v) return t('addListing.alerts.emailRequired');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return t('addListing.alerts.validEmailRequired');
         return null;
       },
     });
@@ -271,8 +274,8 @@ function AddListingPage() {
       if (!token) {
         await Swal.fire({
           icon: 'error',
-          title: 'Authentication Required',
-          text: 'Please sign in to send invitations.',
+          title: t('addListing.alerts.authRequired'),
+          text: t('addListing.alerts.authRequiredInvite'),
           confirmButtonColor: '#000',
         });
         return;
@@ -283,18 +286,18 @@ function AddListingPage() {
       if (res.success) {
         await Swal.fire({
           icon: 'success',
-          title: 'Invitation sent',
-          text: `An invitation has been sent to ${email.trim()}.`,
+          title: t('addListing.alerts.invitationSent'),
+          text: t('addListing.alerts.invitationSentText', { email: email.trim() }),
           confirmButtonColor: '#10B981',
           timer: 1800,
           showConfirmButton: false,
         });
       } else {
         const errData = res.data as { message?: string } | undefined;
-        const message = errData?.message || res.error || 'Failed to send invitation. Please try again.';
+        const message = errData?.message || res.error || t('addListing.alerts.failedToSendInvitation');
         await Swal.fire({
           icon: 'error',
-          title: 'Could not send invitation',
+          title: t('addListing.alerts.couldNotSendInvitation'),
           text: message,
           confirmButtonColor: '#000',
         });
@@ -302,8 +305,8 @@ function AddListingPage() {
     } catch (e) {
       await Swal.fire({
         icon: 'error',
-        title: 'Could not send invitation',
-        text: e instanceof Error ? e.message : 'Something went wrong. Please try again.',
+        title: t('addListing.alerts.couldNotSendInvitation'),
+        text: e instanceof Error ? e.message : t('addListing.alerts.somethingWentWrong'),
         confirmButtonColor: '#000',
       });
     } finally {
@@ -585,16 +588,16 @@ function AddListingPage() {
         } else {
           Swal.fire({
             icon: 'error',
-            title: 'Error',
-            text: 'Failed to load property data. Please try again.',
+            title: t('addListing.alerts.error'),
+            text: t('addListing.alerts.failedToLoadProperty'),
           });
         }
       } catch (error) {
         console.error('Error fetching property:', error);
         Swal.fire({
           icon: 'error',
-          title: 'Error',
-          text: 'Failed to load property data. Please try again.',
+          title: t('addListing.alerts.error'),
+          text: t('addListing.alerts.failedToLoadProperty'),
         });
       } finally {
         setLoading(false);
@@ -621,25 +624,25 @@ function AddListingPage() {
   }
 
   const steps = [
-    { id: 0, phase: 1, title: 'Property Type', subtitle: 'Choose your property type' },
-    { id: 1, phase: 1, title: 'Location', subtitle: 'Where is your property located?' },
-    { id: 2, phase: 1, title: 'Room Details', subtitle: 'Tell us about the rooms' },
-    { id: 3, phase: 2, title: 'Amenities', subtitle: 'What amenities do you offer?' },
-    { id: 4, phase: 2, title: 'House Rules', subtitle: 'Set your house rules' },
-    { id: 5, phase: 2, title: 'Photos', subtitle: 'Show off your property' },
-    { id: 6, phase: 3, title: 'Title & Description', subtitle: 'Describe your property' },
-    { id: 7, phase: 3, title: 'Classification & Pricing', subtitle: 'Set your pricing' },
-    { id: 8, phase: 3, title: 'Discounts', subtitle: 'Offer discounts to attract guests' },
-    { id: 9, phase: 3, title: 'Cancellation Policy', subtitle: 'Choose your cancellation policy' },
-    { id: 10, phase: 3, title: 'Legal & Booking', subtitle: 'Booking and legal settings' },
-    { id: 11, phase: 3, title: 'Documents', subtitle: 'Upload required documents' },
-    { id: 12, phase: 3, title: 'Review', subtitle: 'Review your listing' },
+    { id: 0, phase: 1, title: t('addListing.steps.propertyType.title'), subtitle: t('addListing.steps.propertyType.subtitle') },
+    { id: 1, phase: 1, title: t('addListing.steps.location.title'), subtitle: t('addListing.steps.location.subtitle') },
+    { id: 2, phase: 1, title: t('addListing.steps.roomDetails.title'), subtitle: t('addListing.steps.roomDetails.subtitle') },
+    { id: 3, phase: 2, title: t('addListing.steps.amenities.title'), subtitle: t('addListing.steps.amenities.subtitle') },
+    { id: 4, phase: 2, title: t('addListing.steps.houseRules.title'), subtitle: t('addListing.steps.houseRules.subtitle') },
+    { id: 5, phase: 2, title: t('addListing.steps.photos.title'), subtitle: t('addListing.steps.photos.subtitle') },
+    { id: 6, phase: 3, title: t('addListing.steps.titleDescription.title'), subtitle: t('addListing.steps.titleDescription.subtitle') },
+    { id: 7, phase: 3, title: t('addListing.steps.classificationPricing.title'), subtitle: t('addListing.steps.classificationPricing.subtitle') },
+    { id: 8, phase: 3, title: t('addListing.steps.discounts.title'), subtitle: t('addListing.steps.discounts.subtitle') },
+    { id: 9, phase: 3, title: t('addListing.steps.cancellationPolicy.title'), subtitle: t('addListing.steps.cancellationPolicy.subtitle') },
+    { id: 10, phase: 3, title: t('addListing.steps.legalBooking.title'), subtitle: t('addListing.steps.legalBooking.subtitle') },
+    { id: 11, phase: 3, title: t('addListing.steps.documents.title'), subtitle: t('addListing.steps.documents.subtitle') },
+    { id: 12, phase: 3, title: t('addListing.steps.review.title'), subtitle: t('addListing.steps.review.subtitle') },
   ];
 
   const phases = [
-    { id: 1, title: 'Property Basics', steps: [0, 1, 2] },
-    { id: 2, title: 'Property Details', steps: [3, 4, 5] },
-    { id: 3, title: 'Finalize', steps: [6, 7, 8, 9, 10, 11, 12] },
+    { id: 1, title: t('addListing.phases.propertyBasics'), steps: [0, 1, 2] },
+    { id: 2, title: t('addListing.phases.propertyDetails'), steps: [3, 4, 5] },
+    { id: 3, title: t('addListing.phases.finalize'), steps: [6, 7, 8, 9, 10, 11, 12] },
   ];
 
   // Enhanced validation function with detailed error tracking
@@ -650,48 +653,48 @@ function AddListingPage() {
     switch (step) {
       case 0: // Property Type
         if (!listing.propertyType) {
-          errors.propertyType = 'Property type is required';
-          missingFields.push('property type');
+          errors.propertyType = t('addListing.validation.propertyTypeRequired');
+          missingFields.push(t('addListing.validation.fields.propertyType'));
         }
         break;
 
       case 1: // Location
         if (!listing.country) {
-          errors.country = 'Country is required';
-          missingFields.push('country');
+          errors.country = t('addListing.validation.countryRequired');
+          missingFields.push(t('addListing.validation.fields.country'));
         }
         if (!listing.city) {
-          errors.city = 'City is required';
-          missingFields.push('city');
+          errors.city = t('addListing.validation.cityRequired');
+          missingFields.push(t('addListing.validation.fields.city'));
         }
         if (!listing.street) {
-          errors.street = 'Street address is required';
-          missingFields.push('street address');
+          errors.street = t('addListing.validation.streetRequired');
+          missingFields.push(t('addListing.validation.fields.street'));
         }
         {
           const countryName = countries.find((c) => String(c.id) === String(listing.country))?.name || '';
           if (countryName.toLowerCase().includes('egypt') && !listing.postalCode) {
-            errors.postalCode = 'Postal code is required for Egypt';
-            missingFields.push('postal code');
+            errors.postalCode = t('addListing.validation.postalCodeRequiredEgypt');
+            missingFields.push(t('addListing.validation.fields.postalCode'));
           }
         }
         break;
 
       case 2: // Basics - Enhanced validation
         if (listing.guests < 1) {
-          errors.guests = 'At least 1 guest must be allowed';
+          errors.guests = t('addListing.validation.guestsMin');
         }
         if (listing.bedrooms < 1) {
-          errors.bedrooms = 'At least 1 bedroom is required';
-          missingFields.push('bedroom count');
+          errors.bedrooms = t('addListing.validation.bedroomsMin');
+          missingFields.push(t('addListing.validation.fields.bedrooms'));
         }
         if (listing.beds < 1) {
-          errors.beds = 'At least 1 bed is required';
-          missingFields.push('bed count');
+          errors.beds = t('addListing.validation.bedsMin');
+          missingFields.push(t('addListing.validation.fields.beds'));
         }
         if (listing.bathrooms < 1) {
-          errors.bathrooms = 'At least 1 bathroom is required';
-          missingFields.push('bathroom count');
+          errors.bathrooms = t('addListing.validation.bathroomsMin');
+          missingFields.push(t('addListing.validation.fields.bathrooms'));
         }
         break;
 
@@ -700,57 +703,57 @@ function AddListingPage() {
 
       case 4: // House Rules
         if (!listing.checkInTime) {
-          errors.checkInTime = 'Check-in time is required';
-          missingFields.push('check-in time');
+          errors.checkInTime = t('addListing.validation.checkInRequired');
+          missingFields.push(t('addListing.validation.fields.checkIn'));
         }
         if (!listing.checkOutTime) {
-          errors.checkOutTime = 'Check-out time is required';
-          missingFields.push('check-out time');
+          errors.checkOutTime = t('addListing.validation.checkOutRequired');
+          missingFields.push(t('addListing.validation.fields.checkOut'));
         }
         break;
 
       case 5: // Photos
         if (listing.photos.length < 5) {
-          errors.photos = `${listing.photos.length}/5 photos required`;
-          missingFields.push(`${5 - listing.photos.length} more photos needed`);
+          errors.photos = `${listing.photos.length}/5`;
+          missingFields.push(t('addListing.validation.fields.morePhotos', { count: 5 - listing.photos.length }));
         }
         break;
 
       case 6: // Title + Description
         if (!listing.title.trim()) {
-          errors.title = 'Property title is required';
-          missingFields.push('property title');
+          errors.title = t('addListing.validation.titleRequired');
+          missingFields.push(t('addListing.validation.fields.title'));
         } else if (listing.title.trim().length < 10) {
-          errors.title = 'Title must be at least 10 characters long';
+          errors.title = t('addListing.validation.titleMinLength');
         }
         if (!listing.description.trim()) {
-          errors.description = 'Property description is required';
-          missingFields.push('property description');
+          errors.description = t('addListing.validation.descriptionRequired');
+          missingFields.push(t('addListing.validation.fields.description'));
         } else if (listing.description.trim().length < 50) {
-          errors.description = 'Description must be at least 50 characters long';
+          errors.description = t('addListing.validation.descriptionMinLength');
         }
         break;
 
       case 7: // Classification + Pricing
         if (!listing.stars || listing.stars === 0) {
-          errors.stars = 'Please rate your property';
-          missingFields.push('property rating');
+          errors.stars = t('addListing.validation.starsRequired');
+          missingFields.push(t('addListing.validation.fields.stars'));
         }
         const isEGP = currency === 'EGP';
         const minBasePrice = isEGP ? 1000 : 20;
-        const maxBasePrice = isEGP ? 50000 : 10000;
-        const maxCleaningFee = isEGP ? 2500 : 35;
+        const maxBasePrice = isEGP ? 100000 : 10000;
+        const maxCleaningFee = isEGP ? 3000 : 35;
         const currencySymbol = isEGP ? 'EGP' : 'EGP';
         if (!listing.basePrice || listing.basePrice < minBasePrice) {
-          errors.basePrice = `Minimum price is ${currencySymbol} ${minBasePrice.toLocaleString()}`;
-          missingFields.push('base price');
+          errors.basePrice = t('addListing.pricing.minimumPrice', { currency: currencySymbol, amount: minBasePrice.toLocaleString() });
+          missingFields.push(t('addListing.validation.fields.basePrice'));
         } else if (listing.basePrice > maxBasePrice) {
-          errors.basePrice = `Maximum price is ${currencySymbol} ${maxBasePrice.toLocaleString()}`;
+          errors.basePrice = t('addListing.pricing.maximumPrice', { currency: currencySymbol, amount: maxBasePrice.toLocaleString() });
         }
         if ((listing.cleaningFee || 0) > maxCleaningFee) {
-          errors.cleaningFee = `Cleaning fee cannot exceed ${currencySymbol}${maxCleaningFee.toLocaleString()}`;
+          errors.cleaningFee = t('addListing.pricing.cleaningFeeCannotExceed', { currency: currencySymbol, amount: maxCleaningFee.toLocaleString() });
         } else if (isEGP && (listing.cleaningFee || 0) > (listing.basePrice || 0)) {
-          errors.cleaningFee = 'Cleaning fee cannot exceed the nightly rate';
+          errors.cleaningFee = t('addListing.validation.cleaningFeeOverPrice');
         }
         break;
 
@@ -759,22 +762,22 @@ function AddListingPage() {
 
       case 9: // Cancellation Policy
         if (!listing.cancellationPolicy?.policyType) {
-          errors.cancellationPolicy = 'Please select a cancellation policy';
-          missingFields.push('cancellation policy');
+          errors.cancellationPolicy = t('addListing.validation.cancellationPolicyRequired');
+          missingFields.push(t('addListing.validation.fields.cancellationPolicy'));
         }
         break;
 
       case 10: // Legal/Booking Settings
         if (!listing.phoneNumber || listing.phoneNumber.trim().length < 6) {
-          errors.phoneNumber = 'Phone number is required';
-          missingFields.push('phone number');
+          errors.phoneNumber = t('addListing.validation.phoneRequired');
+          missingFields.push(t('addListing.validation.fields.phoneNumber'));
         }
         break;
 
       case 11: // Documents — Host ID & Property Document are optional
         if (!listing.isPropertyOwner && !listing.documentOfProperty.PowerOfAttorney) {
-          errors.powerOfAttorney = 'Power of Attorney is required for non-owners';
-          missingFields.push('power of attorney');
+          errors.powerOfAttorney = t('addListing.validation.powerOfAttorneyRequired');
+          missingFields.push(t('addListing.validation.fields.powerOfAttorney'));
         }
         break;
 
@@ -790,10 +793,10 @@ function AddListingPage() {
       let alertText = '';
 
       if (missingFields.length > 0) {
-        alertTitle = 'Please complete required fields';
+        alertTitle = t('addListing.alerts.completeRequiredFields');
         alertText = missingFields.map(field => `• ${field}`).join('\n');
       } else {
-        alertTitle = 'Please fix the errors below';
+        alertTitle = t('addListing.alerts.fixErrorsBelow');
         alertText = Object.values(errors).join('\n• ');
       }
 
@@ -802,7 +805,7 @@ function AddListingPage() {
         title: alertTitle,
         text: alertText,
         confirmButtonColor: '#10B981',
-        confirmButtonText: 'Got it',
+        confirmButtonText: t('addListing.alerts.gotIt'),
         customClass: {
           popup: 'text-left',
         }
@@ -836,7 +839,7 @@ function AddListingPage() {
   };
 
   const saveStepDraft = async (nextStep: number): Promise<{ ok: boolean; message?: string }> => {
-    if (!userId) return { ok: false, message: 'Authentication required' };
+    if (!userId) return { ok: false, message: t('addListing.alerts.authRequiredApi') };
     if (!selectedUser?.id) {
       setShowIntro(true);
       return { ok: false, message: '' };
@@ -1070,7 +1073,7 @@ function AddListingPage() {
       }
 
       const clerkToken = await getToken();
-      if (!clerkToken) return { ok: false, message: 'Authentication required' };
+      if (!clerkToken) return { ok: false, message: t('addListing.alerts.authRequiredApi') };
 
       const response = await PropertyAPI.create(formData as any, clerkToken);
 
@@ -1085,11 +1088,11 @@ function AddListingPage() {
       }
       // Extract error message from API response
       const errData = response.data as any;
-      const apiMessage = errData?.message || response.error || 'Failed to save your progress. Please try again.';
+      const apiMessage = errData?.message || response.error || t('addListing.alerts.saveFailedText');
       return { ok: false, message: apiMessage };
     } catch (error) {
       console.error('Error saving draft:', error);
-      return { ok: false, message: error instanceof Error ? error.message : 'Failed to save your progress. Please try again.' };
+      return { ok: false, message: error instanceof Error ? error.message : t('addListing.alerts.saveFailedText') };
     }
   };
 
@@ -1108,8 +1111,8 @@ function AddListingPage() {
           if (!result.ok) {
             await Swal.fire({
               icon: 'error',
-              title: 'Save Failed',
-              text: result.message || 'Failed to save your progress. Please try again.',
+              title: t('addListing.alerts.saveFailed'),
+              text: result.message || t('addListing.alerts.saveFailedText'),
               confirmButtonColor: '#000',
             });
             return;
@@ -1118,8 +1121,8 @@ function AddListingPage() {
           console.error('Draft save failed:', e);
           await Swal.fire({
             icon: 'error',
-            title: 'Save Failed',
-            text: 'Failed to save your progress. Please try again.',
+            title: t('addListing.alerts.saveFailed'),
+            text: t('addListing.alerts.saveFailedText'),
             confirmButtonColor: '#000',
           });
           return;
@@ -1149,8 +1152,8 @@ function AddListingPage() {
     if (!isAuthLoaded || !isSignedIn || !userId) {
       await Swal.fire({
         icon: 'error',
-        title: 'Authentication Required',
-        text: 'Please sign in to create a listing.',
+        title: t('addListing.alerts.authRequired'),
+        text: t('addListing.alerts.authRequiredListing'),
         confirmButtonColor: '#000',
       });
       router.push('/sign-in');
@@ -1160,8 +1163,8 @@ function AddListingPage() {
     if (!listing.title || !listing.description) {
       await Swal.fire({
         icon: 'error',
-        title: 'Missing Information',
-        text: 'Please provide a title and description for your property.',
+        title: t('addListing.alerts.missingInformation'),
+        text: t('addListing.alerts.missingInformationText'),
         confirmButtonColor: '#000',
       });
       setCurrentStep(5);
@@ -1171,8 +1174,8 @@ function AddListingPage() {
     if (!listing.propertyType) {
       await Swal.fire({
         icon: 'error',
-        title: 'Missing Property Type',
-        text: 'Please select a property type.',
+        title: t('addListing.alerts.missingPropertyType'),
+        text: t('addListing.alerts.missingPropertyTypeText'),
         confirmButtonColor: '#000',
       });
       setCurrentStep(0);
@@ -1182,8 +1185,8 @@ function AddListingPage() {
     if (!listing.city || !listing.country) {
       await Swal.fire({
         icon: 'error',
-        title: 'Incomplete Location',
-        text: 'Please complete the location details for your property.',
+        title: t('addListing.alerts.incompleteLocation'),
+        text: t('addListing.alerts.incompleteLocationText'),
         confirmButtonColor: '#000',
       });
       setCurrentStep(1);
@@ -1202,13 +1205,13 @@ function AddListingPage() {
         if (result.ok) {
           await Swal.fire({
             icon: 'success',
-            title: 'Property Updated',
-            text: `Your property "${listing.title}" has been updated successfully.`,
+            title: t('addListing.alerts.propertyUpdated'),
+            text: t('addListing.alerts.propertyUpdatedText', { title: listing.title }),
             confirmButtonColor: '#000',
           });
           router.push('/');
         } else {
-          throw new Error(result.message || 'Failed to update property');
+          throw new Error(result.message || t('addListing.alerts.failedToUpdateProperty'));
         }
         return;
       }
@@ -1221,20 +1224,20 @@ function AddListingPage() {
       if (result.ok) {
         await Swal.fire({
           icon: 'success',
-          title: `"${listing.title}" Created!`,
-          text: 'Your property listing has been created successfully.',
+          title: t('addListing.alerts.propertyCreatedTitle', { title: listing.title }),
+          text: t('addListing.alerts.propertyCreatedText'),
           confirmButtonColor: '#000',
         });
         router.push('/');
       } else {
-        throw new Error(result.message || 'Failed to add property');
+        throw new Error(result.message || t('addListing.alerts.failedToAddProperty'));
       }
     } catch (error: any) {
       console.error('Error submitting property:', error);
       await Swal.fire({
         icon: 'error',
-        title: 'Submission Failed',
-        text: `Something went wrong: ${error.message}`,
+        title: t('addListing.alerts.submissionFailed'),
+        text: t('addListing.alerts.submissionFailedText', { message: error.message }),
         confirmButtonColor: '#000',
       });
     } finally {
@@ -1251,22 +1254,22 @@ function AddListingPage() {
 
   // Phase info for the left sidebar card
   const phaseInfo = [
-    { illustration: '/images/listing/step1-illustration.svg', title: 'Tell us about your property', subtitle: 'Start with the basics - property type, location, and room details.' },
-    { illustration: '/images/listing/step2-illustration.svg', title: 'Make your property stand out', subtitle: 'Add amenities, house rules, and photos to attract guests.' },
-    { illustration: '/images/listing/step3-illustration.svg', title: 'Finalize your listing', subtitle: 'Set your pricing, policies, and review your listing before publishing.' },
+    { illustration: '/images/listing/step1-illustration.svg', title: t('addListing.phaseInfo.phase1.title'), subtitle: t('addListing.phaseInfo.phase1.subtitle') },
+    { illustration: '/images/listing/step2-illustration.svg', title: t('addListing.phaseInfo.phase2.title'), subtitle: t('addListing.phaseInfo.phase2.subtitle') },
+    { illustration: '/images/listing/step3-illustration.svg', title: t('addListing.phaseInfo.phase3.title'), subtitle: t('addListing.phaseInfo.phase3.subtitle') },
   ];
 
   // Step-specific overrides for the left card
   const stepInfoOverrides: Record<number, { illustration: string; title: string; subtitle: string }> = {
-    1:  { illustration: '/images/listing/location-illustration.svg',              title: 'Pin your location',              subtitle: 'Help guests find your property easily.' },
-    4:  { illustration: '/images/listing/houserules-illustration.svg',            title: 'Set your house rules',           subtitle: 'Let guests know what to expect during their stay.' },
-    6:  { illustration: '/images/listing/title-illustration-48a20e.png',          title: 'Give your place a title',        subtitle: 'A great title helps your listing stand out in search results.' },
-    7:  { illustration: '/images/listing/pricing-illustration-332fe1.png',        title: 'Set your pricing',               subtitle: 'Choose a competitive price to attract your first guests.' },
-    8:  { illustration: '/images/listing/discounts-illustration-791af2.png',      title: 'Offer discounts',                subtitle: 'Attract more guests with special discounts.' },
-    9:  { illustration: '/images/listing/cancellation-illustration-5e4bee.png',   title: 'Cancellation policy',            subtitle: 'Choose a policy that works for you and your guests.' },
-    10: { illustration: '/images/listing/legal-illustration.png',                 title: 'Legal & booking settings',       subtitle: 'Configure booking preferences and contact information.' },
-    11: { illustration: '/images/listing/documents-illustration.svg',             title: 'Upload your documents',          subtitle: 'Provide required documents to verify your property.' },
-    12: { illustration: '/images/listing/review-illustration.svg',                title: 'Review your listing',            subtitle: 'Make sure everything looks good before publishing.' },
+    1:  { illustration: '/images/listing/location-illustration.svg',              title: t('addListing.stepInfoOverrides.location.title'),     subtitle: t('addListing.stepInfoOverrides.location.subtitle') },
+    4:  { illustration: '/images/listing/houserules-illustration.svg',            title: t('addListing.stepInfoOverrides.houseRules.title'),   subtitle: t('addListing.stepInfoOverrides.houseRules.subtitle') },
+    6:  { illustration: '/images/listing/title-illustration-48a20e.png',          title: t('addListing.stepInfoOverrides.title.title'),        subtitle: t('addListing.stepInfoOverrides.title.subtitle') },
+    7:  { illustration: '/images/listing/pricing-illustration-332fe1.png',        title: t('addListing.stepInfoOverrides.pricing.title'),      subtitle: t('addListing.stepInfoOverrides.pricing.subtitle') },
+    8:  { illustration: '/images/listing/discounts-illustration-791af2.png',      title: t('addListing.stepInfoOverrides.discounts.title'),    subtitle: t('addListing.stepInfoOverrides.discounts.subtitle') },
+    9:  { illustration: '/images/listing/cancellation-illustration-5e4bee.png',   title: t('addListing.stepInfoOverrides.cancellation.title'), subtitle: t('addListing.stepInfoOverrides.cancellation.subtitle') },
+    10: { illustration: '/images/listing/legal-illustration.png',                 title: t('addListing.stepInfoOverrides.legal.title'),        subtitle: t('addListing.stepInfoOverrides.legal.subtitle') },
+    11: { illustration: '/images/listing/documents-illustration.svg',             title: t('addListing.stepInfoOverrides.documents.title'),    subtitle: t('addListing.stepInfoOverrides.documents.subtitle') },
+    12: { illustration: '/images/listing/review-illustration.svg',                title: t('addListing.stepInfoOverrides.review.title'),       subtitle: t('addListing.stepInfoOverrides.review.subtitle') },
   };
 
   const currentPhaseInfo = stepInfoOverrides[currentStep]
@@ -1309,7 +1312,7 @@ function AddListingPage() {
                 </GoogleMap>
               ) : (
                 <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                  <p className="text-gray-500">Loading map...</p>
+                  <p className="text-gray-500">{t('addListing.locationChooser.loadingMap')}</p>
                 </div>
               )}
 
@@ -1322,7 +1325,7 @@ function AddListingPage() {
                   className="w-full flex items-center gap-4 px-6 py-5 border-2 border-[#2F3A45] rounded-2xl hover:bg-gray-50 transition-colors text-left"
                 >
                   <MapPin className="w-8 h-8 text-[#FCC519] flex-shrink-0" />
-                  <span className="text-base text-black">Enter your address</span>
+                  <span className="text-base text-black">{t('addListing.locationChooser.enterAddress')}</span>
                 </button>
 
                 {/* Use Current Location */}
@@ -1352,7 +1355,7 @@ function AddListingPage() {
                   <div className="w-[50px] h-[50px] bg-[#F0F2F5] rounded-[10px] flex items-center justify-center flex-shrink-0">
                     <Navigation className="w-6 h-6 text-[#1D242B]" />
                   </div>
-                  <span className="text-base text-black">Use current location</span>
+                  <span className="text-base text-black">{t('addListing.locationChooser.useCurrentLocation')}</span>
                 </button>
 
                 {/* Enter Address Manually */}
@@ -1364,7 +1367,7 @@ function AddListingPage() {
                   <div className="w-[50px] h-[50px] bg-[#F0F2F5] rounded-[10px] flex items-center justify-center flex-shrink-0">
                     <PenLine className="w-6 h-6 text-[#1D242B]" />
                   </div>
-                  <span className="text-base text-black">Enter address manually</span>
+                  <span className="text-base text-black">{t('addListing.locationChooser.enterAddressManually')}</span>
                 </button>
               </div>
             </div>
@@ -1414,20 +1417,21 @@ function AddListingPage() {
             <Link href="/" className="flex items-center gap-2">
               <Image
                 src="/full_logo.png"
-                alt="Logo"
+                alt={t('header.logoAlt')}
                 width={152}
                 height={72}
               />
             </Link>
 
             <div className="flex items-center gap-3">
+              <LocaleSwitcher />
               <button
                 onClick={() => {
                   router.push('/');
                 }}
                 className="px-5 py-3 text-xs font-normal text-[#1D242B] border border-[#F0F2F5] rounded-full hover:bg-gray-50 transition-colors"
               >
-                Save & Exit
+                {t('header.saveAndExit')}
               </button>
               <UserButton
                 showName={false}
@@ -1455,10 +1459,10 @@ function AddListingPage() {
                       <User className="w-8 h-8 text-[#FCC519]" />
                     </div>
                     <h2 className="text-2xl font-bold text-[#1D242B] text-center">
-                      Who is this listing for?
+                      {t('addListing.intro.title')}
                     </h2>
                     <p className="text-sm text-[#647C94] text-center">
-                      Search and select the property owner to create a listing on their behalf.
+                      {t('addListing.intro.subtitle')}
                     </p>
                   </div>
 
@@ -1469,7 +1473,7 @@ function AddListingPage() {
                         type="text"
                         value={userSearchQuery}
                         onChange={(e) => setUserSearchQuery(e.target.value)}
-                        placeholder="Search by name or email..."
+                        placeholder={t('addListing.intro.searchPlaceholder')}
                         autoFocus
                         className="flex-1 text-base text-[#1D242B] placeholder:text-[#B0B8C1] outline-none bg-transparent"
                       />
@@ -1514,21 +1518,21 @@ function AddListingPage() {
                     {showUserDropdown && userSearchResults.length === 0 && !isSearchingUsers && userSearchQuery.length >= 2 && (
                       <div className="absolute z-50 w-full mt-2 bg-white border border-[#E5E9EE] rounded-2xl shadow-xl px-4 py-8 text-center">
                         <User className="w-8 h-8 text-[#D1D5DB] mx-auto mb-2" />
-                        <p className="text-sm text-[#9CA3AF]">No users found</p>
+                        <p className="text-sm text-[#9CA3AF]">{t('addListing.intro.noResults')}</p>
                       </div>
                     )}
                   </div>
 
                   {userSearchQuery.length === 0 && (
                     <p className="text-xs text-[#B0B8C1] text-center mt-4">
-                      Start typing at least 2 characters to search
+                      {t('addListing.intro.minCharsHint')}
                     </p>
                   )}
 
                   {/* Divider */}
                   <div className="flex items-center gap-4 my-6">
                     <div className="flex-1 h-px bg-[#E5E9EE]" />
-                    <span className="text-xs text-[#9CA3AF] uppercase tracking-wider">or</span>
+                    <span className="text-xs text-[#9CA3AF] uppercase tracking-wider">{t('addListing.intro.or')}</span>
                     <div className="flex-1 h-px bg-[#E5E9EE]" />
                   </div>
 
@@ -1544,7 +1548,7 @@ function AddListingPage() {
                       className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 border-2 border-dashed border-[#E5E9EE] rounded-2xl text-sm font-semibold text-[#1D242B] hover:border-[#FCC519] hover:bg-[#FCC519]/5 transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <UserPlus className="w-5 h-5 text-[#FCC519]" />
-                      Add new user
+                      {t('addListing.intro.addNewUser')}
                     </button>
                     <button
                       type="button"
@@ -1558,12 +1562,12 @@ function AddListingPage() {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                           </svg>
-                          Sending...
+                          {t('addListing.intro.sending')}
                         </>
                       ) : (
                         <>
                           <Mail className="w-5 h-5 text-[#FCC519]" />
-                          Invite user
+                          {t('addListing.intro.inviteUser')}
                         </>
                       )}
                     </button>
@@ -1574,7 +1578,7 @@ function AddListingPage() {
                   <div className="flex items-center gap-3 mb-8">
                     <button
                       type="button"
-                      title="Back to search"
+                      title={t('addListing.addUser.backToSearch')}
                       onClick={() => {
                         setShowAddUserForm(false);
                         resetAddUserForm();
@@ -1585,21 +1589,21 @@ function AddListingPage() {
                       <ArrowLeft className="w-5 h-5 text-[#1D242B]" />
                     </button>
                     <div>
-                      <h2 className="text-xl font-bold text-[#1D242B]">Add new user</h2>
-                      <p className="text-xs text-[#647C94]">Create a property owner account</p>
+                      <h2 className="text-xl font-bold text-[#1D242B]">{t('addListing.addUser.title')}</h2>
+                      <p className="text-xs text-[#647C94]">{t('addListing.addUser.subtitle')}</p>
                     </div>
                   </div>
 
                   <div className="flex flex-col gap-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-[#1D242B]">First name<span className="text-red-500 ml-1">*</span></label>
+                        <label className="text-xs font-semibold text-[#1D242B]">{t('addListing.addUser.firstName')}<span className="text-red-500 ml-1">*</span></label>
                         <input
                           type="text"
                           value={newUserForm.firstName}
                           disabled={isCreatingUser}
                           onChange={(e) => setNewUserForm({ ...newUserForm, firstName: e.target.value })}
-                          placeholder="John"
+                          placeholder={t('addListing.addUser.firstNamePlaceholder')}
                           className={`px-4 py-3 bg-[#F8F9FA] border-2 rounded-xl text-sm text-[#1D242B] placeholder:text-[#B0B8C1] outline-none focus:border-[#FCC519] focus:bg-white transition-colors ${
                             newUserErrors.firstName ? 'border-red-400' : 'border-[#E5E9EE]'
                           }`}
@@ -1609,13 +1613,13 @@ function AddListingPage() {
                         )}
                       </div>
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-[#1D242B]">Last name<span className="text-red-500 ml-1">*</span></label>
+                        <label className="text-xs font-semibold text-[#1D242B]">{t('addListing.addUser.lastName')}<span className="text-red-500 ml-1">*</span></label>
                         <input
                           type="text"
                           value={newUserForm.lastName}
                           disabled={isCreatingUser}
                           onChange={(e) => setNewUserForm({ ...newUserForm, lastName: e.target.value })}
-                          placeholder="Doe"
+                          placeholder={t('addListing.addUser.lastNamePlaceholder')}
                           className={`px-4 py-3 bg-[#F8F9FA] border-2 rounded-xl text-sm text-[#1D242B] placeholder:text-[#B0B8C1] outline-none focus:border-[#FCC519] focus:bg-white transition-colors ${
                             newUserErrors.lastName ? 'border-red-400' : 'border-[#E5E9EE]'
                           }`}
@@ -1627,13 +1631,13 @@ function AddListingPage() {
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-[#1D242B]">Email<span className="text-red-500 ml-1">*</span></label>
+                      <label className="text-xs font-semibold text-[#1D242B]">{t('addListing.addUser.email')}<span className="text-red-500 ml-1">*</span></label>
                       <input
                         type="email"
                         value={newUserForm.email}
                         disabled={isCreatingUser}
                         onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })}
-                        placeholder="user@example.com"
+                        placeholder={t('addListing.addUser.emailPlaceholder')}
                         className={`px-4 py-3 bg-[#F8F9FA] border-2 rounded-xl text-sm text-[#1D242B] placeholder:text-[#B0B8C1] outline-none focus:border-[#FCC519] focus:bg-white transition-colors ${
                           newUserErrors.email ? 'border-red-400' : 'border-[#E5E9EE]'
                         }`}
@@ -1644,14 +1648,14 @@ function AddListingPage() {
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-[#1D242B]">Password<span className="text-red-500 ml-1">*</span></label>
+                      <label className="text-xs font-semibold text-[#1D242B]">{t('addListing.addUser.password')}<span className="text-red-500 ml-1">*</span></label>
                       <div className="relative">
                         <input
                           type={showNewUserPassword ? 'text' : 'password'}
                           value={newUserForm.password}
                           disabled={isCreatingUser}
                           onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })}
-                          placeholder="At least 8 characters"
+                          placeholder={t('addListing.addUser.passwordPlaceholder')}
                           autoComplete="new-password"
                           className={`w-full px-4 py-3 pe-11 bg-[#F8F9FA] border-2 rounded-xl text-sm text-[#1D242B] placeholder:text-[#B0B8C1] outline-none focus:border-[#FCC519] focus:bg-white transition-colors ${
                             newUserErrors.password ? 'border-red-400' : 'border-[#E5E9EE]'
@@ -1659,7 +1663,7 @@ function AddListingPage() {
                         />
                         <button
                           type="button"
-                          aria-label={showNewUserPassword ? 'Hide password' : 'Show password'}
+                          aria-label={showNewUserPassword ? t('addListing.addUser.hidePassword') : t('addListing.addUser.showPassword')}
                           onClick={() => setShowNewUserPassword((v) => !v)}
                           disabled={isCreatingUser}
                           className="absolute inset-y-0 inset-e-0 px-3 flex items-center text-[#5E5E5E] hover:text-[#1D242B] cursor-pointer disabled:cursor-not-allowed"
@@ -1673,12 +1677,12 @@ function AddListingPage() {
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-[#1D242B]">Phone<span className="text-red-500 ml-1">*</span></label>
+                      <label className="text-xs font-semibold text-[#1D242B]">{t('addListing.addUser.phone')}<span className="text-red-500 ml-1">*</span></label>
                       <div className="flex items-stretch">
                         <div ref={dialDropdownRef} className="relative">
                           <button
                             type="button"
-                            aria-label="Country code"
+                            aria-label={t('addListing.addUser.countryCode')}
                             disabled={isCreatingUser}
                             onClick={() => {
                               setShowDialDropdown((v) => !v);
@@ -1704,14 +1708,14 @@ function AddListingPage() {
                                     autoFocus
                                     value={dialSearchQuery}
                                     onChange={(e) => setDialSearchQuery(e.target.value)}
-                                    placeholder="Search country or code"
+                                    placeholder={t('addListing.addUser.searchCountryPlaceholder')}
                                     className="w-full ps-9 pe-3 py-2 bg-[#F8F9FA] border border-[#E5E9EE] rounded-lg text-sm text-[#1D242B] placeholder:text-[#B0B8C1] outline-none focus:border-[#FCC519]"
                                   />
                                 </div>
                               </div>
                               <ul className="max-h-60 overflow-y-auto py-1">
                                 {filteredDialCountries.length === 0 ? (
-                                  <li className="px-3 py-2 text-sm text-[#5E5E5E]">No matches</li>
+                                  <li className="px-3 py-2 text-sm text-[#5E5E5E]">{t('addListing.addUser.noMatches')}</li>
                                 ) : (
                                   filteredDialCountries.map((c) => (
                                     <li key={c.code}>
@@ -1763,11 +1767,11 @@ function AddListingPage() {
                       }`}>
                         <div className="flex flex-col gap-0.5">
                           <h3 className="text-sm font-semibold text-[#1D242B]">
-                            Owned by Houseiana
+                            {t('addListing.addUser.ownedByHouseiana')}
                             <span className="text-red-500 ml-1">*</span>
                           </h3>
                           <p className="text-xs text-[#5E5E5E]">
-                            Is this user owned by Houseiana?
+                            {t('addListing.addUser.ownedByHouseianaHint')}
                           </p>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
@@ -1789,7 +1793,7 @@ function AddListingPage() {
                                 : 'border-[#E5E9EE] bg-white text-[#1D242B] hover:bg-[#F8F9FA]'
                             } ${isCreatingUser ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
                           >
-                            Yes
+                            {t('addListing.addUser.yes')}
                           </button>
                           <button
                             type="button"
@@ -1809,7 +1813,7 @@ function AddListingPage() {
                                 : 'border-[#E5E9EE] bg-white text-[#1D242B] hover:bg-[#F8F9FA]'
                             } ${isCreatingUser ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
                           >
-                            No
+                            {t('addListing.addUser.no')}
                           </button>
                         </div>
                       </div>
@@ -1828,7 +1832,7 @@ function AddListingPage() {
                         disabled={isCreatingUser}
                         className="flex-1 py-3 rounded-xl text-sm font-semibold text-[#1D242B] bg-[#F0F2F5] hover:bg-[#E5E9EE] transition-colors disabled:opacity-50"
                       >
-                        Cancel
+                        {t('addListing.addUser.cancel')}
                       </button>
                       <button
                         type="button"
@@ -1842,10 +1846,10 @@ function AddListingPage() {
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                             </svg>
-                            Creating...
+                            {t('addListing.addUser.creating')}
                           </>
                         ) : (
-                          'Create user'
+                          t('addListing.addUser.createUser')
                         )}
                       </button>
                     </div>
@@ -1866,25 +1870,25 @@ function AddListingPage() {
                   <User className="w-5 h-5 text-[#1D242B]" />
                 </div>
                 <div>
-                  <p className="text-xs text-[#9CA3AF]">Creating listing for</p>
+                  <p className="text-xs text-[#9CA3AF]">{t('addListing.selectedUser.creatingFor')}</p>
                   <p className="text-sm font-semibold text-[#1D242B]">{selectedUser?.name} <span className="font-normal text-[#9CA3AF]">· {selectedUser?.email}</span></p>
                 </div>
               </div>
               <button
                 type="button"
-                title="Change user"
+                title={t('addListing.selectedUser.changeUser')}
                 onClick={() => {
                   setSelectedUser(null);
                   setUserSearchQuery('');
                 }}
                 className="text-xs font-semibold text-[#FCC519] hover:text-[#e0ad00] transition-colors px-3 py-1.5 rounded-lg hover:bg-[#FCC519]/10"
               >
-                Change
+                {t('addListing.selectedUser.change')}
               </button>
             </div>
 
             <h1 className="text-2xl md:text-[34px] font-bold text-[#1D242B] text-center leading-[1.4] md:leading-[1.5]">
-              List your property in just a few simple steps
+              {t('addListing.getStarted.title')}
             </h1>
 
             <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 w-full justify-center">
@@ -1892,20 +1896,20 @@ function AddListingPage() {
                 {
                   num: '1',
                   img: '/images/listing/step1-illustration.svg',
-                  title: 'Property Basics',
-                  desc: 'Tell us about your property type, location, and room details.',
+                  title: t('addListing.getStarted.card1Title'),
+                  desc: t('addListing.getStarted.card1Desc'),
                 },
                 {
                   num: '2',
                   img: '/images/listing/step2-illustration.svg',
-                  title: 'Property Details',
-                  desc: 'Add amenities, house rules, and upload photos of your property.',
+                  title: t('addListing.getStarted.card2Title'),
+                  desc: t('addListing.getStarted.card2Desc'),
                 },
                 {
                   num: '3',
                   img: '/images/listing/step3-illustration.svg',
-                  title: 'Finalize',
-                  desc: 'Set your pricing, policies, and review your listing before publishing.',
+                  title: t('addListing.getStarted.card3Title'),
+                  desc: t('addListing.getStarted.card3Desc'),
                 },
               ].map((card) => (
                 <div
@@ -1937,7 +1941,7 @@ function AddListingPage() {
               onClick={() => setShowIntro(false)}
               className="w-full max-w-[340px] py-3.5 bg-[#FCC519] text-[#1D242B] text-base font-semibold rounded-xl hover:bg-[#f0bb0e] transition-colors mb-4"
             >
-              Get Started
+              {t('addListing.getStarted.button')}
             </button>
           </div>
         </main>
@@ -1974,7 +1978,7 @@ function AddListingPage() {
                     {steps[currentStep].title}
                   </h1>
                   <span className="text-sm font-medium text-[#5E5E5E] whitespace-nowrap">
-                    {`Step ${currentStep + 1} of ${steps.length}`}
+                    {t('addListing.stepCounter', { current: currentStep + 1, total: steps.length })}
                   </span>
                 </div>
 
@@ -2009,7 +2013,7 @@ function AddListingPage() {
                       : 'bg-[#F0F2F5] text-[#1D242B] hover:bg-gray-200'
                   }`}
                 >
-                  Back
+                  {t('addListing.footer.back')}
                 </button>
 
                 <button
@@ -2047,7 +2051,7 @@ function AddListingPage() {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                       </svg>
-                      Creating...
+                      {t('addListing.footer.creating')}
                     </>
                   ) : isSavingDraft ? (
                     <>
@@ -2071,12 +2075,12 @@ function AddListingPage() {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                       </svg>
-                      Saving...
+                      {t('addListing.footer.saving')}
                     </>
                   ) : currentStep === steps.length - 1 ? (
-                    propertyId ? 'Edit List' : 'Create Listing'
+                    propertyId ? t('addListing.footer.editList') : t('addListing.footer.createListing')
                   ) : (
-                    'Next'
+                    t('addListing.footer.next')
                   )}
                 </button>
               </div>

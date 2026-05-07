@@ -2,6 +2,7 @@ import { PropertyFormData } from '../types';
 import { Camera, Trash2, ImagePlus, Image as ImageIcon } from 'lucide-react';
 import { RequiredFieldLabel, ValidationError } from '@/components/ui/ValidationError';
 import { useFileUrls } from '@/hooks/use-file-urls';
+import { useTranslation } from '@/lib/i18n/context';
 
 interface PhotosStepProps {
   listing: PropertyFormData;
@@ -18,6 +19,7 @@ export const PhotosStep = ({
   validationErrors = {},
   hasAttemptedNext = false,
 }: PhotosStepProps) => {
+  const { t } = useTranslation();
   const handlePhotoUpload = (files: FileList | null) => {
     if (files && !readOnly) {
       const newPhotos = Array.from(files);
@@ -49,14 +51,14 @@ export const PhotosStep = ({
       {/* Cover Photo Section */}
       <div className="flex flex-col gap-3">
         <h3 className="text-base font-bold text-[#2F3A45]">
-          {'Cover Photo'}
+          {t('addListing.photos.coverPhoto')}
         </h3>
-        <p className="text-sm text-[#5E5E5E]">{'This will be the main photo guests see first'}</p>
+        <p className="text-sm text-[#5E5E5E]">{t('addListing.photos.coverPhotoHint')}</p>
 
         <input
           type="file"
           accept="image/*"
-          title="Cover Photo"
+          title={t('addListing.photos.coverPhoto')}
           onChange={(e) => handleCoverPhotoUpload(e.target.files)}
           className="hidden"
           id="cover-photo-upload"
@@ -70,7 +72,7 @@ export const PhotosStep = ({
               className="w-full h-full object-cover"
             />
             <div className="absolute top-3 left-3 px-3 py-1.5 bg-[#FCC519] rounded-full text-xs font-semibold text-[#1D242B]">
-              {'Cover Photo'}
+              {t('addListing.photos.coverPhoto')}
             </div>
             {!readOnly && (
               <div className="absolute top-3 right-3 flex gap-2">
@@ -82,7 +84,7 @@ export const PhotosStep = ({
                 </label>
                 <button
                   type="button"
-                  title="Remove cover photo"
+                  title={t('addListing.photos.removeCoverPhoto')}
                   onClick={() => setListing({ ...listing, coverPhoto: null })}
                   className="w-[42px] h-[42px] bg-white/90 backdrop-blur-sm border border-[#E5E9EE] rounded-xl flex items-center justify-center hover:bg-white transition-colors"
                 >
@@ -107,10 +109,10 @@ export const PhotosStep = ({
                 <Camera className="w-7 h-7 text-[#9CA3AF]" strokeWidth={1.5} />
               </div>
               <span className="text-sm font-semibold text-[#5E5E5E]">
-                {'Upload cover photo'}
+                {t('addListing.photos.uploadCoverPhoto')}
               </span>
               <span className="text-xs text-[#9CA3AF]">
-                {'JPG, PNG up to 10MB'}
+                {t('addListing.photos.fileTypeHint')}
               </span>
             </div>
           </label>
@@ -148,13 +150,13 @@ export const PhotosStep = ({
                 <Camera className="w-10 h-10 text-[#9CA3AF]" strokeWidth={1.5} />
               </div>
               <h3 className="text-xl font-bold text-[#1D242B]">
-                {'Drag and drop your photos here'}
+                {t('addListing.photos.dragAndDrop')}
               </h3>
               <p className={`text-base text-center ${hasError ? 'text-red-500' : 'text-[#5E5E5E]'}`}>
-                {'Upload at least 5 photos'}
+                {t('addListing.photos.uploadAtLeast5')}
               </p>
               <span className="bg-[#FCC519] w-[200px] h-[52px] rounded-xl flex items-center justify-center text-base font-medium text-[#1D242B] hover:bg-[#f0bb0e] transition-colors">
-                {'Browse'}
+                {t('addListing.photos.browse')}
               </span>
             </div>
           </label>
@@ -184,7 +186,7 @@ export const PhotosStep = ({
             {!readOnly && (
               <button
                 type="button"
-                title="Delete main photo"
+                title={t('addListing.photos.deleteMainPhoto')}
                 onClick={() =>
                   setListing({
                     ...listing,
@@ -210,7 +212,7 @@ export const PhotosStep = ({
                   <ImagePlus className="w-[22px] h-[22px] text-[#9CA3AF]" strokeWidth={1.5} />
                 </div>
                 <span className="text-[13px] font-semibold text-[#5E5E5E]">
-                  {'Add Photo'}
+                  {t('addListing.photos.addPhoto')}
                 </span>
               </label>
             )}
@@ -229,7 +231,7 @@ export const PhotosStep = ({
                 {!readOnly && (
                   <button
                     type="button"
-                    title={`Delete photo ${index + 2}`}
+                    title={t('addListing.photos.deletePhotoNum', { num: index + 2 })}
                     onClick={() =>
                       setListing({
                         ...listing,
@@ -254,17 +256,17 @@ export const PhotosStep = ({
             </div>
             <div>
               <h4 className="text-[15px] font-semibold text-[#2F3A45]">
-                {'Quick Tips'}
+                {t('addListing.photos.quickTips')}
               </h4>
               <ul className="mt-2 space-y-1 list-disc list-inside">
                 <li className="text-[13px] text-[#5E5E5E]">
-                  {'Use natural light for the best results'}
+                  {t('addListing.photos.tip1')}
                 </li>
                 <li className="text-[13px] text-[#5E5E5E]">
-                  {'Shoot from the corners of the room for a wider view'}
+                  {t('addListing.photos.tip2')}
                 </li>
                 <li className="text-[13px] text-[#5E5E5E]">
-                  {'Make your first photo the most inviting one'}
+                  {t('addListing.photos.tip3')}
                 </li>
               </ul>
             </div>
@@ -274,8 +276,8 @@ export const PhotosStep = ({
 
       {hasError && (
         <ValidationError
-          message="Photos are required"
-          description={`You have uploaded ${photosCount} photo(s). Please upload at least 5.`}
+          message={t('addListing.photos.errorTitle')}
+          description={t('addListing.photos.errorDesc', { count: photosCount })}
         />
       )}
     </div>

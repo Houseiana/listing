@@ -1,5 +1,6 @@
 import { PropertyFormData } from '../types';
 import { PawPrint, Cigarette, PartyPopper, UserX, Heart } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/context';
 
 interface HouseRulesStepProps {
   listing: PropertyFormData;
@@ -12,12 +13,13 @@ export const HouseRulesStep = ({
   setListing,
   readOnly,
 }: HouseRulesStepProps) => {
+  const { t } = useTranslation();
   const ruleLabels: Record<string, string> = {
-    petsAllowed: 'Pets allowed',
-    smokingAllowed: 'Smoking allowed',
-    eventsAllowed: 'Events allowed',
-    guestVisitorsAllowed: 'Guest visitors allowed',
-    marriedCouplesOnly: 'Married couples only',
+    petsAllowed: t('addListing.houseRules.petsAllowed'),
+    smokingAllowed: t('addListing.houseRules.smokingAllowed'),
+    eventsAllowed: t('addListing.houseRules.eventsAllowed'),
+    guestVisitorsAllowed: t('addListing.houseRules.guestVisitorsAllowed'),
+    marriedCouplesOnly: t('addListing.houseRules.marriedCouplesOnly'),
   };
 
   return (
@@ -55,7 +57,7 @@ export const HouseRulesStep = ({
           </div>
           <button
             type="button"
-            title={`Toggle ${ruleLabels[rule.labelKey]}`}
+            title={`${t('addListing.houseRules.toggle')} ${ruleLabels[rule.labelKey]}`}
             onClick={() =>
               !readOnly &&
               setListing({
@@ -85,15 +87,15 @@ export const HouseRulesStep = ({
     {/* Check-in and checkout times */}
     <div className="flex flex-col gap-6">
       <h3 className="text-lg font-bold text-[#2F3A45]">
-        {'Check-in & Checkout Times'}
+        {t('addListing.houseRules.checkInOutTimes')}
       </h3>
       <div className="flex items-center gap-6">
         <div className="flex-1 flex flex-col gap-3.5">
           <label className="text-sm font-semibold text-[#2F3A45]">
-            {'Check-in after'}
+            {t('addListing.houseRules.checkInAfter')}
           </label>
           <select
-            title="Check-in after"
+            title={t('addListing.houseRules.checkInAfter')}
             value={listing.checkInTime}
             disabled={readOnly}
             onChange={(e) =>
@@ -115,15 +117,15 @@ export const HouseRulesStep = ({
                 {time}
               </option>
             ))}
-            <option value="Flexible">{"Flexible"}</option>
+            <option value="Flexible">{t('addListing.houseRules.flexible')}</option>
           </select>
         </div>
         <div className="flex-1 flex flex-col gap-3.5">
           <label className="text-sm font-semibold text-[#2F3A45]">
-            {'Checkout before'}
+            {t('addListing.houseRules.checkoutBefore')}
           </label>
           <select
-            title="Checkout before"
+            title={t('addListing.houseRules.checkoutBefore')}
             value={listing.checkOutTime}
             disabled={readOnly}
             onChange={(e) =>
@@ -138,7 +140,7 @@ export const HouseRulesStep = ({
                 {time}
               </option>
             ))}
-            <option value="Flexible">{"Flexible"}</option>
+            <option value="Flexible">{t('addListing.houseRules.flexible')}</option>
           </select>
         </div>
       </div>
