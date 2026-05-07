@@ -49,7 +49,7 @@ export interface PropertyFormData {
   weeklyDiscount: number;
   monthlyDiscount: number;
   newListingDiscount: number;
-  instantBook: boolean;
+  instantBook: boolean | null;
   minimumDaysForBooking: number;
   securityCamera: boolean;
   noiseMonitor: boolean;

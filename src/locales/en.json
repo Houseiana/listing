@@ -204,6 +204,9 @@
       "passwordMinLength": "Password must be at least 8 characters",
       "phoneRequired": "Phone number is required",
       "phoneTooShort": "Phone number is too short",
+      "phoneInvalidLength": "Phone number must be between 7 and 15 digits",
+      "emergencyPhoneInvalidLength": "Emergency phone must be between 7 and 15 digits",
+      "instantBookRequired": "Please select whether to enable instant booking",
       "selectOwnedByHouseiana": "Please select whether this user is owned by Houseiana",
       "propertyTypeRequired": "Property type is required",
       "countryRequired": "Country is required",
@@ -242,7 +245,8 @@
         "basePrice": "base price",
         "cancellationPolicy": "cancellation policy",
         "phoneNumber": "phone number",
-        "powerOfAttorney": "power of attorney"
+        "powerOfAttorney": "power of attorney",
+        "instantBook": "instant book preference"
       }
     },
     "locationChooser": {
@@ -340,7 +344,10 @@
       "bookingSettings": "Booking Settings",
       "instantBook": "Instant Book",
       "instantBookHint": "Allow guests to book instantly without waiting for your approval",
+      "instantBookQuestion": "Do you want to enable instant booking?",
       "toggleInstantBook": "Toggle instant book",
+      "yes": "Yes",
+      "no": "No",
       "minimumDaysForBooking": "Minimum Days For Booking",
       "minimumDaysHint": "The minimum number of nights a guest must book in a single reservation",
       "decreaseMinimumDays": "Decrease minimum days",

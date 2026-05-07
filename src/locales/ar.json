@@ -204,6 +204,9 @@
       "passwordMinLength": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
       "phoneRequired": "رقم الهاتف مطلوب",
       "phoneTooShort": "رقم الهاتف قصير جدًا",
+      "phoneInvalidLength": "رقم الهاتف يجب أن يكون بين 7 و 15 رقم",
+      "emergencyPhoneInvalidLength": "هاتف الطوارئ يجب أن يكون بين 7 و 15 رقم",
+      "instantBookRequired": "من فضلك اختر ما إذا كنت تريد تفعيل الحجز الفورى",
       "selectOwnedByHouseiana": "من فضلك اختر ما إذا كان هذا المستخدم تابعًا لـ Houseiana",
       "propertyTypeRequired": "نوع العقار مطلوب",
       "countryRequired": "الدولة مطلوبة",
@@ -242,7 +245,8 @@
         "basePrice": "السعر الأساسى",
         "cancellationPolicy": "سياسة الإلغاء",
         "phoneNumber": "رقم الهاتف",
-        "powerOfAttorney": "التوكيل الرسمى"
+        "powerOfAttorney": "التوكيل الرسمى",
+        "instantBook": "تفضيل الحجز الفورى"
       }
     },
     "locationChooser": {
@@ -340,7 +344,10 @@
       "bookingSettings": "إعدادات الحجز",
       "instantBook": "الحجز الفورى",
       "instantBookHint": "اسمح للضيوف بالحجز فورًا بدون انتظار موافقتك",
+      "instantBookQuestion": "هل تريد تفعيل الحجز الفورى؟",
       "toggleInstantBook": "تفعيل الحجز الفورى",
+      "yes": "نعم",
+      "no": "لا",
       "minimumDaysForBooking": "الحد الأدنى لأيام الحجز",
       "minimumDaysHint": "أقل عدد ليالٍ يجب على الضيف حجزها فى حجز واحد",
       "decreaseMinimumDays": "تقليل الحد الأدنى للأيام",

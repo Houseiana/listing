@@ -358,7 +358,7 @@ function AddListingPage() {
     weeklyDiscount: 0,
     monthlyDiscount: 0,
     newListingDiscount: 0,
-    instantBook: true,
+    instantBook: null,
     minimumDaysForBooking: 1,
     securityCamera: false,
     noiseMonitor: false,
@@ -371,7 +371,9 @@ function AddListingPage() {
     checkInTime: '3:00 PM',
     checkOutTime: '11:00 AM',
     phoneNumber: '',
+    phoneCountryCode: '',
     emergencyPhoneNumber: '',
+    emergencyPhoneCountryCode: '',
     isPropertyOwner: true,
     managedBy: false,
     documentOfProperty: {
@@ -511,7 +513,7 @@ function AddListingPage() {
             stars: property.stars || property.rating || undefined,
 
             // House rules
-            instantBook: property.instantBook ?? property.instant_book ?? false,
+            instantBook: property.instantBook ?? property.instant_book ?? null,
             minimumDaysForBooking:
               property.minimumDaysForBooking ??
               property.minimum_days_for_booking ??
@@ -767,12 +769,24 @@ function AddListingPage() {
         }
         break;
 
-      case 10: // Legal/Booking Settings
-        if (!listing.phoneNumber || listing.phoneNumber.trim().length < 6) {
+      case 10: { // Legal/Booking Settings
+        const phoneDigits = listing.phoneNumber.replace(/\D/g, '');
+        if (!phoneDigits) {
           errors.phoneNumber = t('addListing.validation.phoneRequired');
           missingFields.push(t('addListing.validation.fields.phoneNumber'));
+        } else if (phoneDigits.length < 7 || phoneDigits.length > 15) {
+          errors.phoneNumber = t('addListing.validation.phoneInvalidLength');
+        }
+        const emergencyDigits = listing.emergencyPhoneNumber.replace(/\D/g, '');
+        if (emergencyDigits && (emergencyDigits.length < 7 || emergencyDigits.length > 15)) {
+          errors.emergencyPhoneNumber = t('addListing.validation.emergencyPhoneInvalidLength');
+        }
+        if (listing.instantBook === null) {
+          errors.instantBook = t('addListing.validation.instantBookRequired');
+          missingFields.push(t('addListing.validation.fields.instantBook'));
         }
         break;
+      }
 
       case 11: // Documents — Host ID & Property Document are optional
         if (!listing.isPropertyOwner && !listing.documentOfProperty.PowerOfAttorney) {
@@ -1027,10 +1041,12 @@ function AddListingPage() {
 
       if (currentStep === 10) {
         // Booking Settings - Nested
-        formData.append(
-          'bookingSettings.instantBook',
-          String(listing.instantBook)
-        );
+        if (listing.instantBook !== null) {
+          formData.append(
+            'bookingSettings.instantBook',
+            String(listing.instantBook)
+          );
+        }
         formData.append(
           'bookingSettings.minimumDaysForBooking',
           String(listing.minimumDaysForBooking ?? 1)
