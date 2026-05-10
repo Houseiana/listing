@@ -743,7 +743,7 @@ function AddListingPage() {
         }
         const isEGP = currency === 'EGP';
         const minBasePrice = isEGP ? 1000 : 20;
-        const maxBasePrice = isEGP ? 100000 : 10000;
+        const maxBasePrice = isEGP ? 200000 : 10000;
         const maxCleaningFee = isEGP ? 3000 : 35;
         const currencySymbol = isEGP ? 'EGP' : 'EGP';
         if (!listing.basePrice || listing.basePrice < minBasePrice) {
