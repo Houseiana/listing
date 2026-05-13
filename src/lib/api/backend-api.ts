@@ -75,6 +75,85 @@ export const PropertyAPI = {
   },
 };
 
+export const UserPropertiesAPI = {
+  searchByPhone(phone: string, token: string, signal?: AbortSignal) {
+    return request(`/api/sales-dashboard/user-properties?phone=${encodeURIComponent(phone)}`, {
+      headers: authHeader(token),
+      signal,
+    });
+  },
+
+  getDetails(propertyId: string, token: string) {
+    return request(`/api/sales-dashboard/property-details?propertyId=${encodeURIComponent(propertyId)}`, {
+      headers: authHeader(token),
+    });
+  },
+
+  getUnavailableDates(propertyId: string, token: string, signal?: AbortSignal) {
+    return request(`/api/sales-dashboard/properties/${encodeURIComponent(propertyId)}/unavailable-dates`, {
+      headers: authHeader(token),
+      signal,
+    });
+  },
+
+  getSpecialPriceDays(propertyId: string, year: number, token: string, signal?: AbortSignal) {
+    return request(`/api/sales-dashboard/special-price-days?propertyId=${encodeURIComponent(propertyId)}&year=${year}`, {
+      headers: authHeader(token),
+      signal,
+    });
+  },
+
+  setSpecialPrice(
+    payload: { adminId: string; propertyId: string; fromDate: string; toDate: string; price: number },
+    token: string
+  ) {
+    return request('/api/sales-dashboard/special-price', {
+      method: 'POST',
+      headers: {
+        ...authHeader(token),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  updateCalendarStatus(
+    payload: {
+      propertyId: string;
+      userId: string;
+      fromDate: string;
+      toDate: string;
+      status: 'NONE' | 'Blocked';
+      reasonId: number;
+      reasonText: string;
+    },
+    token: string
+  ) {
+    return request('/api/sales-dashboard/calendar/update-status', {
+      method: 'POST',
+      headers: {
+        ...authHeader(token),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  getBlockReasons(token: string) {
+    return request('/api/SalesDashboardLookup/ReasonBlockProperty', {
+      headers: authHeader(token),
+    });
+  },
+
+  editProperty(formData: FormData, token: string) {
+    return request('/api/sales-dashboard/edit-property', {
+      method: 'POST',
+      headers: authHeader(token),
+      body: formData,
+    });
+  },
+};
+
 export const UsersAPI = {
   search(query: string, token: string) {
     return request(`/api/sales-dashboard/users/search?query=${encodeURIComponent(query)}`, {

@@ -2,12 +2,12 @@
 
 import { Suspense, useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { PropertyAPI, UsersAPI } from '@/lib/api/backend-api';
+import { PropertyAPI, UserPropertiesAPI, UsersAPI } from '@/lib/api/backend-api';
 import { useAuth, UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 import Swal from 'sweetalert2';
-import { MapPin, Navigation, PenLine, Search, User, UserPlus, X, ArrowLeft, Eye, EyeOff, Mail } from 'lucide-react';
+import { MapPin, Navigation, PenLine, Phone, Search, User, UserPlus, X, ArrowLeft, ArrowRight, Eye, EyeOff, Mail, Home as HomeIcon } from 'lucide-react';
 import { stripArabicNumerals, blockArabicNumeralKey } from '@/lib/utils/numeric-input';
 import { countries as dialCountries } from '@/lib/countries';
 import { PropertyFormData } from '@/app/types';
@@ -66,6 +66,15 @@ function AddListingPage() {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const userSearchRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Property search by phone state
+  const [propertyPhoneQuery, setPropertyPhoneQuery] = useState('');
+  const [propertyResults, setPropertyResults] = useState<Record<string, unknown>[]>([]);
+  const [isSearchingProperties, setIsSearchingProperties] = useState(false);
+  const [hasSearchedProperties, setHasSearchedProperties] = useState(false);
+  const propertySearchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const propertySearchAbortRef = useRef<AbortController | null>(null);
+  const propertySearchLatestQueryRef = useRef<string>('');
 
   // Add new user form state
   const [showAddUserForm, setShowAddUserForm] = useState(false);
@@ -140,6 +149,69 @@ function AddListingPage() {
     searchTimeoutRef.current = setTimeout(() => searchUsers(userSearchQuery), 400);
     return () => { if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current); };
   }, [userSearchQuery, searchUsers]);
+
+  // Debounced property-by-phone search — cancels in-flight requests and ignores stale responses
+  const searchPropertiesByPhone = useCallback(async (phone: string) => {
+    const cleaned = phone.trim();
+    if (!cleaned || cleaned.length < 4) {
+      if (propertySearchAbortRef.current) propertySearchAbortRef.current.abort();
+      propertySearchLatestQueryRef.current = '';
+      setPropertyResults([]);
+      setHasSearchedProperties(false);
+      setIsSearchingProperties(false);
+      return;
+    }
+
+    if (propertySearchAbortRef.current) propertySearchAbortRef.current.abort();
+    const controller = new AbortController();
+    propertySearchAbortRef.current = controller;
+    propertySearchLatestQueryRef.current = cleaned;
+
+    setIsSearchingProperties(true);
+    try {
+      const token = await getToken();
+      if (!token || controller.signal.aborted) return;
+      const res = await UserPropertiesAPI.searchByPhone(cleaned, token, controller.signal);
+      if (controller.signal.aborted || propertySearchLatestQueryRef.current !== cleaned) return;
+      if (res.success && res.data) {
+        const raw = res.data as Record<string, unknown>;
+        const list = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw.data)
+            ? (raw.data as Record<string, unknown>[])
+            : Array.isArray((raw.data as Record<string, unknown> | undefined)?.items)
+              ? ((raw.data as Record<string, unknown>).items as Record<string, unknown>[])
+              : Array.isArray(raw.items)
+                ? (raw.items as Record<string, unknown>[])
+                : [];
+        setPropertyResults(list);
+      } else {
+        setPropertyResults([]);
+      }
+      setHasSearchedProperties(true);
+    } catch (e) {
+      if (controller.signal.aborted) return;
+      console.error('Property search failed:', e);
+      setPropertyResults([]);
+      setHasSearchedProperties(true);
+    } finally {
+      if (!controller.signal.aborted && propertySearchLatestQueryRef.current === cleaned) {
+        setIsSearchingProperties(false);
+      }
+    }
+  }, [getToken]);
+
+  useEffect(() => {
+    if (propertySearchTimeoutRef.current) clearTimeout(propertySearchTimeoutRef.current);
+    propertySearchTimeoutRef.current = setTimeout(() => searchPropertiesByPhone(propertyPhoneQuery), 700);
+    return () => { if (propertySearchTimeoutRef.current) clearTimeout(propertySearchTimeoutRef.current); };
+  }, [propertyPhoneQuery, searchPropertiesByPhone]);
+
+  useEffect(() => {
+    return () => {
+      if (propertySearchAbortRef.current) propertySearchAbortRef.current.abort();
+    };
+  }, []);
 
   const resetAddUserForm = () => {
     setNewUserForm({ firstName: '', lastName: '', email: '', password: '', phone: '', createByPhone: null });
@@ -650,7 +722,7 @@ function AddListingPage() {
   // Enhanced validation function with detailed error tracking
   const validateStep = async (step: number, showAlert: boolean = true): Promise<{ isValid: boolean; errors: Record<string, string> }> => {
     const errors: Record<string, string> = {};
-    let missingFields: string[] = [];
+    const missingFields: string[] = [];
 
     switch (step) {
       case 0: // Property Type
@@ -1465,11 +1537,11 @@ function AddListingPage() {
 
       {/* User Selection Screen */}
       {showIntro && !selectedUser ? (
-        <main className="flex-1 pt-24 lg:pt-28 pb-24 flex items-start justify-center">
-          <div className="w-full max-w-[680px] px-4 mx-auto" ref={userSearchRef}>
-            <div className="bg-white rounded-3xl border border-[#E8EAED] shadow-sm p-8 lg:p-10">
-              {!showAddUserForm ? (
-                <>
+        <main className="flex-1 pt-24 lg:pt-28 pb-24 flex items-center justify-center">
+          <div className={`w-full px-4 mx-auto ${showAddUserForm ? 'max-w-[680px]' : 'max-w-[1180px]'}`} ref={userSearchRef}>
+            {!showAddUserForm ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 items-stretch">
+                <div className="bg-white rounded-3xl border border-[#E8EAED] shadow-sm p-6 lg:p-8 flex flex-col">
                   <div className="flex flex-col items-center gap-2 mb-8">
                     <div className="w-16 h-16 bg-[#FCC519]/10 rounded-2xl flex items-center justify-center mb-2">
                       <User className="w-8 h-8 text-[#FCC519]" />
@@ -1588,9 +1660,109 @@ function AddListingPage() {
                       )}
                     </button>
                   </div>
-                </>
-              ) : (
-                <>
+
+                </div>
+
+                <div className="bg-white rounded-3xl border border-[#E8EAED] shadow-sm p-6 lg:p-8 flex flex-col gap-4">
+                    <div className="flex flex-col items-center gap-2 mb-4">
+                      <div className="w-16 h-16 bg-[#FCC519]/10 rounded-2xl flex items-center justify-center mb-2">
+                        <Phone className="w-8 h-8 text-[#FCC519]" />
+                      </div>
+                      <h2 className="text-2xl font-bold text-[#1D242B] text-center">
+                        {t('addListing.phoneSearch.title')}
+                      </h2>
+                      <p className="text-sm text-[#647C94] text-center">
+                        {t('addListing.phoneSearch.subtitle')}
+                      </p>
+                    </div>
+
+                    <div className="relative">
+                      <div className="flex items-center px-4 py-4 bg-[#F8F9FA] border-2 border-[#E5E9EE] rounded-2xl focus-within:border-[#FCC519] focus-within:bg-white transition-all">
+                        <Phone className="w-5 h-5 text-[#9CA3AF] flex-shrink-0 me-3" />
+                        <input
+                          type="tel"
+                          dir="ltr"
+                          value={propertyPhoneQuery}
+                          onKeyDown={blockArabicNumeralKey}
+                          onChange={(e) => {
+                            const cleaned = stripArabicNumerals(e.target.value).replace(/[^0-9+\s-]/g, '');
+                            setPropertyPhoneQuery(cleaned);
+                          }}
+                          placeholder={t('addListing.phoneSearch.placeholder')}
+                          className="flex-1 text-base text-[#1D242B] placeholder:text-[#B0B8C1] outline-none bg-transparent"
+                        />
+                        {isSearchingProperties && (
+                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-[#FCC519] border-t-transparent ms-2" />
+                        )}
+                      </div>
+                    </div>
+
+                    {propertyPhoneQuery.replace(/\D/g, '').length < 4 && (
+                      <p className="text-xs text-[#B0B8C1] text-center">
+                        {t('addListing.phoneSearch.minCharsHint')}
+                      </p>
+                    )}
+
+                    {hasSearchedProperties && !isSearchingProperties && propertyResults.length === 0 && propertyPhoneQuery.replace(/\D/g, '').length >= 4 && (
+                      <div className="border border-[#E5E9EE] rounded-2xl px-4 py-8 text-center">
+                        <HomeIcon className="w-8 h-8 text-[#D1D5DB] mx-auto mb-2" />
+                        <p className="text-sm text-[#9CA3AF]">{t('addListing.phoneSearch.noResults')}</p>
+                      </div>
+                    )}
+
+                    {propertyResults.length > 0 && (
+                      <div className="flex flex-col gap-2">
+                        <p className="text-xs font-semibold text-[#647C94] uppercase tracking-wider">
+                          {t('addListing.phoneSearch.resultsTitle')} ({propertyResults.length})
+                        </p>
+                        <ul className="flex flex-col gap-2 max-h-[360px] overflow-y-auto">
+                          {propertyResults.map((p, idx) => {
+                            const id = String(p.id ?? p.propertyId ?? p.PropertyId ?? idx);
+                            const title = String(p.title ?? p.name ?? p.propertyTitle ?? `Property #${id}`);
+                            const location = p.address?.city + ' ' + p.address?.village || '';
+                            const cover = (p.coverPhoto ?? p.cover ?? p.image ?? p.thumbnail) as string | undefined;
+                            const status = (p.status ?? p.propertyStatus) as string | undefined;
+                            return (
+                              <li key={id}>
+                                <button
+                                  type="button"
+                                  onClick={() => router.push(`/property-details?propertyId=${encodeURIComponent(id)}`)}
+                                  className="w-full flex items-center gap-3 p-3 border border-[#E5E9EE] rounded-2xl hover:bg-[#F8F9FA] hover:border-[#FCC519] transition-colors text-start cursor-pointer"
+                                >
+                                  <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-[#F0F2F5] flex-shrink-0 flex items-center justify-center">
+                                    {cover ? (
+                                      // eslint-disable-next-line @next/next/no-img-element
+                                      <img src={cover} alt={title} className="absolute inset-0 w-full h-full object-cover" />
+                                    ) : (
+                                      <HomeIcon className="w-6 h-6 text-[#9CA3AF]" />
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-[#1D242B] truncate">{title}</p>
+                                    {location ? (
+                                      <p className="text-xs text-[#9CA3AF] truncate flex items-center gap-1">
+                                        <MapPin className="w-3 h-3 flex-shrink-0" />
+                                        {String(location)}
+                                      </p>
+                                    ) : null}
+                                    {status ? (
+                                      <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FCF9EE] text-[#B38600] uppercase tracking-wider">
+                                        {String(status)}
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                  <ArrowRight className="w-4 h-4 text-[#9CA3AF] flex-shrink-0 rtl:rotate-180" />
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    )}
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white rounded-3xl border border-[#E8EAED] shadow-sm p-8 lg:p-10">
                   <div className="flex items-center gap-3 mb-8">
                     <button
                       type="button"
@@ -1870,9 +2042,8 @@ function AddListingPage() {
                       </button>
                     </div>
                   </div>
-                </>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </main>
 
