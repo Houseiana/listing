@@ -1537,8 +1537,8 @@ function AddListingPage() {
 
       {/* User Selection Screen */}
       {showIntro && !selectedUser ? (
-        <main className="flex-1 pt-24 lg:pt-28 pb-24 flex items-center justify-center">
-          <div className={`w-full px-4 mx-auto ${showAddUserForm ? 'max-w-[680px]' : 'max-w-[1180px]'}`} ref={userSearchRef}>
+        <main className="flex-1 px-3 sm:px-6 lg:px-[7.5%] pt-24 lg:pt-28 pb-24 flex items-center justify-center">
+          <div className={`w-full px-4 mx-auto ${showAddUserForm ? 'max-w-[680px]' : 'max-w-full'}`} ref={userSearchRef}>
             {!showAddUserForm ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 items-stretch">
                 <div className="bg-white rounded-3xl border border-[#E8EAED] shadow-sm p-6 lg:p-8 flex flex-col">
@@ -1660,7 +1660,6 @@ function AddListingPage() {
                       )}
                     </button>
                   </div>
-
                 </div>
 
                 <div className="bg-white rounded-3xl border border-[#E8EAED] shadow-sm p-6 lg:p-8 flex flex-col gap-4">
