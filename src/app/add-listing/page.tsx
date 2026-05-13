@@ -1719,7 +1719,8 @@ function AddListingPage() {
                           {propertyResults.map((p, idx) => {
                             const id = String(p.id ?? p.propertyId ?? p.PropertyId ?? idx);
                             const title = String(p.title ?? p.name ?? p.propertyTitle ?? `Property #${id}`);
-                            const location = p.address?.city + ' ' + p.address?.village || '';
+                            const address = p.address as { city?: string; village?: string } | undefined;
+                            const location = [address?.city, address?.village].filter(Boolean).join(' ');
                             const cover = (p.coverPhoto ?? p.cover ?? p.image ?? p.thumbnail) as string | undefined;
                             const status = (p.status ?? p.propertyStatus) as string | undefined;
                             return (
