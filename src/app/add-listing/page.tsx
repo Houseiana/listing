@@ -1513,14 +1513,14 @@ function AddListingPage() {
 
             <div className="flex items-center gap-3">
               <LocaleSwitcher />
-              <button
+              {/* <button
                 onClick={() => {
                   router.push('/');
                 }}
                 className="px-5 py-3 text-xs font-normal text-[#1D242B] border border-[#F0F2F5] rounded-full hover:bg-gray-50 transition-colors"
               >
                 {t('header.saveAndExit')}
-              </button>
+              </button> */}
               <UserButton
                 showName={false}
                 appearance={{
