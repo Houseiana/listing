@@ -1,14 +1,40 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Camera, Image as ImageIcon, Pencil, Plus, RotateCcw, Trash2, Upload, X } from 'lucide-react';
+import {
+  AlertCircle,
+  Bath,
+  Bed,
+  CalendarDays,
+  Camera,
+  Check,
+  DoorOpen,
+  Image as ImageIcon,
+  Pencil,
+  Plus,
+  RotateCcw,
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
+  Sparkles,
+  Trash2,
+  Upload,
+  Users,
+  X,
+} from 'lucide-react';
 import { useAuth } from '@clerk/nextjs';
 import Swal from 'sweetalert2';
 import { UserPropertiesAPI } from '@/lib/api/backend-api';
 import { useTranslation } from '@/lib/i18n/context';
-import { blockNonPositiveNumeralKey, stripArabicNumerals } from '@/lib/utils/numeric-input';
+import { blockArabicNumeralKey, blockNonPositiveNumeralKey, stripArabicNumerals } from '@/lib/utils/numeric-input';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+type CancellationPolicyInitial = {
+  policyType?: string;
+  freeCancellationHours?: number | null;
+  freeCancellationDays?: number | null;
+};
 
 type EditPropertyInitial = {
   title?: string;
@@ -20,7 +46,21 @@ type EditPropertyInitial = {
   coverPhoto?: string;
   photos?: string[];
   currency?: string;
+  minimumDaysForBooking?: number;
+  guests?: number;
+  bedrooms?: number;
+  beds?: number;
+  bathrooms?: number;
+  amenities?: number[];
+  cancellationPolicy?: CancellationPolicyInitial;
 };
+
+type AmenityLookup = {
+  id: number;
+  name: string;
+};
+
+type PolicyType = 'FLEXIBLE' | 'MODERATE' | 'FIXED';
 
 export function EditPropertyModal({
   propertyId,
@@ -42,6 +82,27 @@ export function EditPropertyModal({
   const [cleaningFee, setCleaningFee] = useState<string>(numToStr(initial.cleaningFee));
   const [electricalFee, setElectricalFee] = useState<string>(numToStr(initial.electricalFee));
   const [waterFee, setWaterFee] = useState<string>(numToStr(initial.waterFee));
+
+  const [minimumDaysForBooking, setMinimumDaysForBooking] = useState<string>(numToStr(initial.minimumDaysForBooking));
+  const [guests, setGuests] = useState<string>(numToStr(initial.guests));
+  const [bedrooms, setBedrooms] = useState<string>(numToStr(initial.bedrooms));
+  const [beds, setBeds] = useState<string>(numToStr(initial.beds));
+  const [bathrooms, setBathrooms] = useState<string>(numToStr(initial.bathrooms));
+
+  const [selectedAmenityIds, setSelectedAmenityIds] = useState<number[]>(initial.amenities ?? []);
+  const [amenitiesLookup, setAmenitiesLookup] = useState<AmenityLookup[]>([]);
+  const [amenitiesLoading, setAmenitiesLoading] = useState(false);
+
+  const initialPolicy = (initial.cancellationPolicy?.policyType as PolicyType) || 'FLEXIBLE';
+  const [policyType, setPolicyType] = useState<PolicyType>(initialPolicy);
+  const [freeCancellationHours, setFreeCancellationHours] = useState<number>(
+    initial.cancellationPolicy?.freeCancellationHours === 48 ? 48 : 24
+  );
+  const [freeCancellationDays, setFreeCancellationDays] = useState<string>(
+    initial.cancellationPolicy?.freeCancellationDays != null
+      ? String(initial.cancellationPolicy.freeCancellationDays)
+      : '5'
+  );
 
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | undefined>(initial.coverPhoto);
@@ -83,7 +144,53 @@ export function EditPropertyModal({
     }
   }, [coverFile]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const fetchAmenities = async () => {
+      setAmenitiesLoading(true);
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const res = await UserPropertiesAPI.getAmenitiesLookup(token);
+        if (cancelled) return;
+        if (res.success && res.data) {
+          const raw = res.data as unknown;
+          const list = Array.isArray(raw)
+            ? raw
+            : Array.isArray((raw as { data?: unknown })?.data)
+              ? ((raw as { data: unknown[] }).data)
+              : [];
+          const parsed: AmenityLookup[] = list
+            .map((item) => {
+              if (!item || typeof item !== 'object') return null;
+              const obj = item as Record<string, unknown>;
+              const idRaw = obj.id ?? obj.amenityId ?? obj.itemId;
+              const id = typeof idRaw === 'number' ? idRaw : Number(idRaw);
+              const nameRaw = obj.name ?? obj.title ?? obj.label;
+              const name = typeof nameRaw === 'string' ? nameRaw : '';
+              if (!Number.isFinite(id) || !name) return null;
+              return { id, name };
+            })
+            .filter((x): x is AmenityLookup => x !== null);
+          setAmenitiesLookup(parsed);
+        }
+      } finally {
+        if (!cancelled) setAmenitiesLoading(false);
+      }
+    };
+    fetchAmenities();
+    return () => {
+      cancelled = true;
+    };
+  }, [getToken]);
+
   const currency = initial.currency || 'EGP';
+
+  const toggleAmenity = (id: number) => {
+    setSelectedAmenityIds((prev) =>
+      prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]
+    );
+  };
 
   const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -151,6 +258,22 @@ export function EditPropertyModal({
         return false;
       }
     }
+    const ints = [minimumDaysForBooking, guests, bedrooms, beds, bathrooms];
+    for (const p of ints) {
+      if (p === '') continue;
+      const n = Number(p);
+      if (!Number.isInteger(n) || n < 0) {
+        Swal.fire({ icon: 'error', title: t('addListing.propertyDetails.edit.invalidInteger'), confirmButtonColor: '#000' });
+        return false;
+      }
+    }
+    if (policyType === 'MODERATE') {
+      const d = Number(freeCancellationDays);
+      if (!Number.isInteger(d) || d < 5 || d > 30) {
+        Swal.fire({ icon: 'error', title: t('addListing.propertyDetails.edit.invalidModerateDays'), confirmButtonColor: '#000' });
+        return false;
+      }
+    }
     return true;
   };
 
@@ -169,6 +292,22 @@ export function EditPropertyModal({
       if (cleaningFee !== '') formData.append('cleaningFee', String(Number(cleaningFee)));
       if (electricalFee !== '') formData.append('electricalFee', String(Number(electricalFee)));
       if (waterFee !== '') formData.append('waterFee', String(Number(waterFee)));
+
+      if (minimumDaysForBooking !== '') formData.append('minimumDaysForBooking', String(Number(minimumDaysForBooking)));
+      if (guests !== '') formData.append('guests', String(Number(guests)));
+      if (bedrooms !== '') formData.append('bedrooms', String(Number(bedrooms)));
+      if (beds !== '') formData.append('beds', String(Number(beds)));
+      if (bathrooms !== '') formData.append('bathrooms', String(Number(bathrooms)));
+
+      for (const id of selectedAmenityIds) formData.append('amenities', String(id));
+
+      formData.append('cancellationPolicy.policyType', policyType);
+      if (policyType === 'FLEXIBLE') {
+        formData.append('cancellationPolicy.freeCancellationHours', String(freeCancellationHours));
+      } else if (policyType === 'MODERATE') {
+        formData.append('cancellationPolicy.freeCancellationDays', String(Number(freeCancellationDays)));
+      }
+
       if (coverFile) formData.append('coverPhoto', coverFile);
       for (const url of photosToRemove) formData.append('photoUrlsToRemove', url);
       for (const f of newPhotos) formData.append('newPhotos', f);
@@ -209,7 +348,7 @@ export function EditPropertyModal({
         if (e.target === e.currentTarget && !submitting) onClose();
       }}
     >
-      <div className="w-full max-w-[1090px] max-h-full bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+      <div className="w-full max-w-[1200px] max-h-full bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden">
         <div className="flex items-center justify-between px-6 lg:px-8 py-5 border-b border-[#F0F2F5]">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-xl bg-[#FCC519]/15 flex items-center justify-center flex-shrink-0">
@@ -287,6 +426,215 @@ export function EditPropertyModal({
                 currency={currency}
                 disabled={submitting}
               />
+            </div>
+          </Section>
+
+          <Section title={t('addListing.propertyDetails.edit.roomDetails')} hint={t('addListing.propertyDetails.edit.roomDetailsHint')}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <IntegerField
+                label={t('addListing.propertyDetails.edit.guests')}
+                value={guests}
+                onChange={setGuests}
+                icon={<Users className="w-4 h-4 text-[#5E5E5E]" />}
+                disabled={submitting}
+              />
+              <IntegerField
+                label={t('addListing.propertyDetails.edit.bedrooms')}
+                value={bedrooms}
+                onChange={setBedrooms}
+                icon={<DoorOpen className="w-4 h-4 text-[#5E5E5E]" />}
+                disabled={submitting}
+              />
+              <IntegerField
+                label={t('addListing.propertyDetails.edit.beds')}
+                value={beds}
+                onChange={setBeds}
+                icon={<Bed className="w-4 h-4 text-[#5E5E5E]" />}
+                disabled={submitting}
+              />
+              <IntegerField
+                label={t('addListing.propertyDetails.edit.bathrooms')}
+                value={bathrooms}
+                onChange={setBathrooms}
+                icon={<Bath className="w-4 h-4 text-[#5E5E5E]" />}
+                disabled={submitting}
+              />
+              <IntegerField
+                label={t('addListing.propertyDetails.edit.minimumDaysForBooking')}
+                value={minimumDaysForBooking}
+                onChange={setMinimumDaysForBooking}
+                icon={<CalendarDays className="w-4 h-4 text-[#5E5E5E]" />}
+                disabled={submitting}
+              />
+            </div>
+          </Section>
+
+          <Section
+            title={t('addListing.propertyDetails.edit.amenities')}
+            hint={t('addListing.propertyDetails.edit.amenitiesHint')}
+            count={selectedAmenityIds.length}
+          >
+            {amenitiesLoading ? (
+              <div className="py-8 text-center text-xs text-[#9CA3AF]">
+                {t('addListing.amenities.loading')}
+              </div>
+            ) : amenitiesLookup.length === 0 ? (
+              <div className="py-8 text-center text-xs text-[#9CA3AF]">
+                {t('addListing.propertyDetails.edit.noAmenities')}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
+                {amenitiesLookup.map((amenity) => {
+                  const isSelected = selectedAmenityIds.includes(amenity.id);
+                  return (
+                    <button
+                      key={amenity.id}
+                      type="button"
+                      onClick={() => toggleAmenity(amenity.id)}
+                      disabled={submitting}
+                      className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border-2 transition-all text-left cursor-pointer disabled:opacity-50 ${
+                        isSelected
+                          ? 'border-[#FCC519] bg-[rgba(252,197,25,0.06)]'
+                          : 'border-[#E5E9EE] bg-white hover:border-[#FCC519]'
+                      }`}
+                    >
+                      <div
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                          isSelected ? 'bg-[#FCC519]' : 'bg-[#F8F9FA]'
+                        }`}
+                      >
+                        <Sparkles
+                          className={`w-3.5 h-3.5 ${isSelected ? 'text-white' : 'text-[#5E5E5E]'}`}
+                          strokeWidth={1.5}
+                        />
+                      </div>
+                      <span className="text-xs font-medium text-[#1D242B] line-clamp-2">
+                        {amenity.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </Section>
+
+          <Section
+            title={t('addListing.propertyDetails.edit.cancellationPolicy')}
+            hint={t('addListing.propertyDetails.edit.cancellationPolicyHint')}
+          >
+            <div className="flex flex-col gap-3">
+              {([
+                { id: 'FLEXIBLE', label: t('addListing.cancellation.flexibleLabel'), desc: t('addListing.cancellation.flexibleDesc'), icon: Shield },
+                { id: 'MODERATE', label: t('addListing.cancellation.moderateLabel'), desc: t('addListing.cancellation.moderateDesc'), icon: ShieldCheck },
+                { id: 'FIXED', label: t('addListing.cancellation.fixedLabel'), desc: t('addListing.cancellation.fixedDesc'), icon: ShieldAlert },
+              ] as const).map((p) => {
+                const isSelected = policyType === p.id;
+                const Icon = p.icon;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setPolicyType(p.id)}
+                    disabled={submitting}
+                    className={`flex items-center justify-between px-4 py-3.5 rounded-2xl border-2 transition-all text-left cursor-pointer disabled:opacity-50 ${
+                      isSelected ? 'bg-[rgba(252,197,25,0.04)] border-[#FCC519]' : 'bg-white border-[#E5E9EE] hover:border-[#FCC519]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                        isSelected ? 'bg-[#FCC519]' : 'bg-[#F8F9FA]'
+                      }`}>
+                        <Icon className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-[#5E5E5E]'}`} strokeWidth={1.5} />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-bold text-[#1D242B]">{p.label}</span>
+                        <span className="text-xs text-[#647C94] truncate">{p.desc}</span>
+                      </div>
+                    </div>
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                      isSelected ? 'bg-[#FCC519] border-[#FCC519]' : 'bg-white border-[#E5E9EE]'
+                    }`}>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-[#1D242B]" strokeWidth={2.5} />}
+                    </div>
+                  </button>
+                );
+              })}
+
+              {policyType === 'FLEXIBLE' && (
+                <div className="rounded-2xl bg-[#F8F9FA] border border-[#E5E9EE] p-4 flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-[#FCC519]" strokeWidth={1.67} />
+                    <span className="text-xs font-bold text-[#1D242B] uppercase tracking-wider">
+                      {t('addListing.cancellation.selectTimeframe')}
+                    </span>
+                  </div>
+                  <div className="flex gap-2.5">
+                    {[24, 48].map((h) => {
+                      const isSelected = freeCancellationHours === h;
+                      return (
+                        <button
+                          key={h}
+                          type="button"
+                          onClick={() => setFreeCancellationHours(h)}
+                          disabled={submitting}
+                          className={`flex-1 h-12 px-4 rounded-xl border-2 bg-white flex items-center justify-between cursor-pointer disabled:opacity-50 transition-all ${
+                            isSelected ? 'border-[#FCC519] shadow-[0_0_0_3px_rgba(252,197,25,0.12)]' : 'border-[#E5E9EE]'
+                          }`}
+                        >
+                          <span className="text-sm font-semibold text-[#1D242B]">
+                            {h === 24 ? t('addListing.cancellation.hours24') : t('addListing.cancellation.hours48')}
+                          </span>
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                            isSelected ? 'bg-[#FCC519] border-[#FCC519]' : 'bg-white border-[#E5E9EE]'
+                          }`}>
+                            {isSelected && <Check className="w-3 h-3 text-[#1D242B]" strokeWidth={2.5} />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {policyType === 'MODERATE' && (
+                <div className="rounded-2xl bg-[#F8F9FA] border border-[#E5E9EE] p-4 flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="w-4 h-4 text-[#FCC519]" strokeWidth={1.67} />
+                    <span className="text-xs font-bold text-[#1D242B] uppercase tracking-wider">
+                      {t('addListing.cancellation.customizeModerate')}
+                    </span>
+                  </div>
+                  <label className="text-xs font-semibold text-[#1D242B]">
+                    {t('addListing.cancellation.moderateQuestion')}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min={5}
+                      max={30}
+                      step={1}
+                      disabled={submitting}
+                      value={freeCancellationDays}
+                      onKeyDown={blockArabicNumeralKey}
+                      onChange={(e) => {
+                        const raw = stripArabicNumerals(e.target.value);
+                        if (raw === '' || /^\d+$/.test(raw)) setFreeCancellationDays(raw);
+                      }}
+                      onBlur={(e) => {
+                        const num = parseInt(stripArabicNumerals(e.target.value), 10);
+                        const clamped = isNaN(num) || num < 5 ? 5 : Math.min(num, 30);
+                        setFreeCancellationDays(String(clamped));
+                      }}
+                      className="w-full pe-16 ps-4 h-12 bg-white border-2 border-[#E5E9EE] rounded-xl text-sm text-[#1D242B] outline-none focus:border-[#FCC519] transition-colors disabled:opacity-50"
+                      placeholder={t('addListing.cancellation.moderatePlaceholder')}
+                    />
+                    <span className="absolute end-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#5E5E5E]">
+                      {t('addListing.cancellation.days')}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#647C94]">{t('addListing.cancellation.moderateRange')}</p>
+                </div>
+              )}
             </div>
           </Section>
 
@@ -528,6 +876,49 @@ function CurrencyField({
           onChange={(e) => onChange(stripArabicNumerals(e.target.value))}
           placeholder="0"
           className="flex-1 px-4 py-3 bg-[#F8F9FA] border-2 border-[#E5E9EE] rounded-e-xl text-sm text-[#1D242B] placeholder:text-[#B0B8C1] outline-none focus:border-[#FCC519] focus:bg-white transition-colors disabled:opacity-50"
+        />
+      </div>
+    </Field>
+  );
+}
+
+function IntegerField({
+  label,
+  value,
+  onChange,
+  icon,
+  disabled,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  icon?: React.ReactNode;
+  disabled?: boolean;
+}) {
+  return (
+    <Field label={label}>
+      <div className="flex items-stretch w-full min-w-0">
+        {icon ? (
+          <span className="px-3 py-3 bg-[#F0F2F5] border-2 border-e-0 border-[#E5E9EE] rounded-s-xl flex items-center justify-center shrink-0 w-11">
+            {icon}
+          </span>
+        ) : null}
+        <input
+          type="number"
+          dir="ltr"
+          value={value}
+          min={0}
+          step={1}
+          disabled={disabled}
+          onKeyDown={blockNonPositiveNumeralKey}
+          onChange={(e) => {
+            const raw = stripArabicNumerals(e.target.value);
+            if (raw === '' || /^\d+$/.test(raw)) onChange(raw);
+          }}
+          placeholder="0"
+          className={`flex-1 min-w-0 px-4 py-3 bg-[#F8F9FA] border-2 border-[#E5E9EE] text-sm text-[#1D242B] placeholder:text-[#B0B8C1] outline-none focus:border-[#FCC519] focus:bg-white transition-colors disabled:opacity-50 ${
+            icon ? 'rounded-e-xl' : 'rounded-xl'
+          }`}
         />
       </div>
     </Field>

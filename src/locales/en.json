@@ -141,7 +141,21 @@
         "errorTitle": "Failed to update property",
         "titleRequired": "Title is required",
         "invalidPrice": "Prices must be 0 or greater",
-        "fileTooLarge": "File is too large (max 10MB)"
+        "fileTooLarge": "File is too large (max 10MB)",
+        "roomDetails": "Capacity & rooms",
+        "roomDetailsHint": "Update capacity, rooms, and minimum stay.",
+        "guests": "Guests",
+        "bedrooms": "Bedrooms",
+        "beds": "Beds",
+        "bathrooms": "Bathrooms",
+        "minimumDaysForBooking": "Minimum stay nights for booking",
+        "amenities": "Amenities",
+        "amenitiesHint": "Select the amenities offered by this property.",
+        "noAmenities": "No amenities available",
+        "cancellationPolicy": "Cancellation policy",
+        "cancellationPolicyHint": "Choose how cancellations are handled.",
+        "invalidInteger": "Numeric fields must be 0 or greater whole numbers",
+        "invalidModerateDays": "Moderate policy requires 5–30 days"
       },
       "months": {
         "1": "Jan",

@@ -152,6 +152,12 @@ export const UserPropertiesAPI = {
       body: formData,
     });
   },
+
+  getAmenitiesLookup(token: string) {
+    return request('/api/SalesDashboardLookup/Amenities', {
+      headers: authHeader(token),
+    });
+  },
 };
 
 export const UsersAPI = {

@@ -200,6 +200,32 @@ function PropertyDetailsPage() {
     return '';
   }).filter(Boolean);
 
+  const amenityIds = pickArray<unknown>(property ?? undefined, 'amenities').map((a) => {
+    if (typeof a === 'number') return a;
+    if (typeof a === 'string' && !Number.isNaN(Number(a))) return Number(a);
+    if (a && typeof a === 'object') {
+      const obj = a as Property;
+      const id = pickNumber(obj, 'id', 'amenityId', 'itemId');
+      return id ?? null;
+    }
+    return null;
+  }).filter((x): x is number => x !== null && Number.isFinite(x));
+
+  const minimumDaysForBooking = pickNumber(
+    property ?? undefined,
+    'minimumDaysForBooking',
+    'minimum_days_for_booking',
+  ) ?? pickNumber(pickObject(property ?? undefined, 'bookingSettings'), 'minimumDaysForBooking', 'minimum_days_for_booking');
+
+  const cancellationPolicyObj = pickObject(property ?? undefined, 'propertyCancellationPolicy', 'cancellationPolicy');
+  const cancellationPolicy = cancellationPolicyObj
+    ? {
+        policyType: pickString(cancellationPolicyObj, 'policyType', 'policy_type'),
+        freeCancellationHours: pickNumber(cancellationPolicyObj, 'freeCancellationHours', 'free_cancellation_hours') ?? null,
+        freeCancellationDays: pickNumber(cancellationPolicyObj, 'freeCancellationDays', 'free_cancellation_days') ?? null,
+      }
+    : undefined;
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#FDFDFD] border-b border-[#F0F2F5]">
@@ -426,6 +452,13 @@ function PropertyDetailsPage() {
             coverPhoto: cover,
             photos,
             currency,
+            minimumDaysForBooking,
+            guests,
+            bedrooms,
+            beds,
+            bathrooms,
+            amenities: amenityIds,
+            cancellationPolicy,
           }}
           onClose={() => setShowEdit(false)}
           onSaved={() => {
