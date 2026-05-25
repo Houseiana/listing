@@ -201,6 +201,18 @@ export const UsersAPI = {
   },
 };
 
+export const AdminsAPI = {
+  getPropertyCount(adminId: string, token: string, signal?: AbortSignal) {
+    return request<{ count?: number; propertyCount?: number } | number>(
+      `/api/sales-dashboard/admins/${encodeURIComponent(adminId)}/property-count`,
+      {
+        headers: authHeader(token),
+        signal,
+      }
+    );
+  },
+};
+
 export const LookupsAPI = {
   getPropertyTypes(token: string) {
     return request('/api/Lookups/PropertyType', { headers: authHeader(token) });

@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { UserButton } from "@clerk/nextjs";
 import Image from "next/image";
 import { LocaleSwitcher } from "@/app/components/LocaleSwitcher";
+import { PropertyCountBadge } from "@/app/components/PropertyCountBadge";
 import { getLocale } from "@/lib/i18n/get-locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
@@ -26,6 +27,7 @@ export default async function HomePage() {
               />
             </Link>
             <div className="flex items-center gap-3">
+              <PropertyCountBadge />
               <LocaleSwitcher />
               {userId ? (
                 <UserButton
