@@ -13,6 +13,23 @@
     "saveAndExit": "حفظ وخروج",
     "signIn": "تسجيل الدخول"
   },
+  "propertyCount": {
+    "tooltip": "العقارات التى أضفتها",
+    "title": "تصفية بالتاريخ",
+    "from": "من",
+    "to": "إلى",
+    "presets": {
+      "today": "اليوم",
+      "week": "هذا الأسبوع",
+      "month": "هذا الشهر",
+      "year": "هذه السنة",
+      "all": "كل الفترات"
+    },
+    "apply": "تطبيق",
+    "clear": "مسح",
+    "loading": "...",
+    "error": "—"
+  },
   "home": {
     "welcome": "مرحباً بك فى Houseiana",
     "tagline": "اعرض عقارك فى خطوات بسيطة",

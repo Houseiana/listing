@@ -13,6 +13,23 @@
     "saveAndExit": "Save & Exit",
     "signIn": "Sign In"
   },
+  "propertyCount": {
+    "tooltip": "Properties you have listed",
+    "title": "Filter by date",
+    "from": "From",
+    "to": "To",
+    "presets": {
+      "today": "Today",
+      "week": "This week",
+      "month": "This month",
+      "year": "This year",
+      "all": "All time"
+    },
+    "apply": "Apply",
+    "clear": "Clear",
+    "loading": "...",
+    "error": "—"
+  },
   "home": {
     "welcome": "Welcome to Houseiana",
     "tagline": "List your property in just simple steps",

@@ -202,14 +202,20 @@ export const UsersAPI = {
 };
 
 export const AdminsAPI = {
-  getPropertyCount(adminId: string, token: string, signal?: AbortSignal) {
-    return request<{ count?: number; propertyCount?: number } | number>(
-      `/api/sales-dashboard/admins/${encodeURIComponent(adminId)}/property-count`,
-      {
-        headers: authHeader(token),
-        signal,
-      }
-    );
+  getPropertyCount(
+    adminId: string,
+    token: string,
+    options?: { from?: string; to?: string; signal?: AbortSignal }
+  ) {
+    const params = new URLSearchParams();
+    if (options?.from) params.set('from', options.from);
+    if (options?.to) params.set('to', options.to);
+    const qs = params.toString();
+    const url = `/api/sales-dashboard/admins/${encodeURIComponent(adminId)}/property-count${qs ? `?${qs}` : ''}`;
+    return request<{ count?: number; propertyCount?: number } | number>(url, {
+      headers: authHeader(token),
+      signal: options?.signal,
+    });
   },
 };
 
