@@ -13,6 +13,7 @@ import { countries as dialCountries } from '@/lib/countries';
 import { PropertyFormData } from '@/app/types';
 import { useTranslation } from '@/lib/i18n/context';
 import { LocaleSwitcher } from '@/app/components/LocaleSwitcher';
+import { PropertyCountBadge } from '@/app/components/PropertyCountBadge';
 import {
   PropertyTypeStep,
   LocationStep,
@@ -1512,6 +1513,7 @@ function AddListingPage() {
             </Link>
 
             <div className="flex items-center gap-3">
+              <PropertyCountBadge />
               <LocaleSwitcher />
               {/* <button
                 onClick={() => {

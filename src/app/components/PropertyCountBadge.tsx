@@ -30,17 +30,11 @@ export function PropertyCountBadge() {
   const [count, setCount] = useState<number | null>(null);
   const [status, setStatus] = useState<Status>('idle');
 
-  console.log('[PropertyCountBadge] render', { isLoaded, isSignedIn, userId, status, count });
-
   useEffect(() => {
-    console.log('[PropertyCountBadge] effect fired', { isLoaded, isSignedIn, userId });
-
     if (!isLoaded) {
-      console.log('[PropertyCountBadge] skipped: not loaded yet');
       return;
     }
     if (!isSignedIn || !userId) {
-      console.log('[PropertyCountBadge] skipped: not signed in');
       return;
     }
 
@@ -50,7 +44,6 @@ export function PropertyCountBadge() {
     (async () => {
       setStatus('loading');
       const token = await getToken();
-      console.log('[PropertyCountBadge] got token?', !!token);
       if (!token) {
         if (!cancelled) setStatus('no-token');
         return;
@@ -60,7 +53,6 @@ export function PropertyCountBadge() {
       const res = await AdminsAPI.getPropertyCount(userId, token, controller.signal);
       if (cancelled) return;
 
-      console.log('[PropertyCountBadge] response:', res);
 
       if (!res.success) {
         setStatus('error');
@@ -84,6 +76,10 @@ export function PropertyCountBadge() {
     };
   }, [isLoaded, isSignedIn, userId, getToken]);
 
+  if (!isLoaded || !isSignedIn) {
+    return null;
+  }
+
   const display =
     status === 'ok' && count !== null
       ? count.toLocaleString()
@@ -93,7 +89,7 @@ export function PropertyCountBadge() {
           ? 'no-token'
           : status === 'error'
             ? 'err'
-            : 'idle';
+            : '';
 
   return (
     <div

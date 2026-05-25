@@ -23,6 +23,7 @@ import {
 import { UserPropertiesAPI } from '@/lib/api/backend-api';
 import { useTranslation } from '@/lib/i18n/context';
 import { LocaleSwitcher } from '@/app/components/LocaleSwitcher';
+import { PropertyCountBadge } from '@/app/components/PropertyCountBadge';
 import { YearCalendar } from './YearCalendar';
 import { EditPropertyModal } from './EditPropertyModal';
 
@@ -235,6 +236,7 @@ function PropertyDetailsPage() {
               <Image src="/full_logo.png" alt={t('header.logoAlt')} width={152} height={72} />
             </Link>
             <div className="flex items-center gap-3">
+              <PropertyCountBadge />
               <LocaleSwitcher />
               <button
                 type="button"
