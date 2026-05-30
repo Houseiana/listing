@@ -231,9 +231,9 @@ function PropertyCard({
 
       <div className="p-4 flex flex-col gap-3 flex-1">
         {description ? (
-          <p className="text-sm text-[#1D242B] leading-relaxed line-clamp-3">{description}</p>
+          <p className="text-sm text-[#1D242B] leading-relaxed line-clamp-2">{description}</p>
         ) : (
-          <p className="text-sm text-[#9CA3AF] italic">—</p>
+          <p className="text-sm text-[#9CA3AF] italic"></p>
         )}
 
         <div className="mt-auto pt-1">
