@@ -61,7 +61,7 @@ function extractCount(data: unknown): number | null {
   return null;
 }
 
-export function PropertyCountBadge() {
+export function PropertyCountBadge({ align = 'auto' }: { align?: 'auto' | 'start' } = {}) {
   const { isLoaded, isSignedIn, userId, getToken } = useAuth();
   const { t, dir } = useTranslation();
 
@@ -200,8 +200,8 @@ export function PropertyCountBadge() {
       {open && (
         <div
           role="dialog"
-          className={`absolute top-full mt-2 z-50 w-72 rounded-2xl border border-[#F0F2F5] bg-white shadow-lg p-4 ${
-            dir === 'rtl' ? 'left-0' : 'right-0'
+          className={`absolute top-full mt-2 z-50 w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-[#F0F2F5] bg-white shadow-lg p-4 ${
+            align === 'start' ? 'left-0' : dir === 'rtl' ? 'left-0' : 'right-0'
           }`}
         >
           <p className="text-xs font-semibold text-[#1D242B] mb-3">

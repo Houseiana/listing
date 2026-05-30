@@ -217,7 +217,40 @@ export const AdminsAPI = {
       signal: options?.signal,
     });
   },
+
+  getProperties(
+    adminId: string,
+    token: string,
+    options?: { page?: number; limit?: number; phone?: string; signal?: AbortSignal }
+  ) {
+    const params = new URLSearchParams();
+    params.set('page', String(options?.page ?? 1));
+    params.set('limit', String(options?.limit ?? 20));
+    if (options?.phone) params.set('phone', options.phone);
+    const url = `/api/sales-dashboard/admins/${encodeURIComponent(adminId)}/properties?${params.toString()}`;
+    return request<{
+      data?: AdminProperty[];
+      pagination?: { total?: number; page?: number; limit?: number; totalPages?: number };
+    }>(url, {
+      headers: authHeader(token),
+      signal: options?.signal,
+    });
+  },
 };
+
+export interface AdminProperty {
+  id: string;
+  title?: string;
+  description?: string;
+  city?: string;
+  address?: string;
+  basePrice?: number;
+  currency?: string;
+  status?: string;
+  coverImage?: string;
+  propertyUrl?: string;
+  [key: string]: unknown;
+}
 
 export const LookupsAPI = {
   getPropertyTypes(token: string) {

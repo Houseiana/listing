@@ -11,7 +11,27 @@
   "header": {
     "logoAlt": "Logo",
     "saveAndExit": "Save & Exit",
-    "signIn": "Sign In"
+    "signIn": "Sign In",
+    "allProperties": "All Properties",
+    "menu": "Menu"
+  },
+  "properties": {
+    "title": "All Properties",
+    "subtitle": "Browse all listed properties.",
+    "back": "Back",
+    "searchPlaceholder": "Filter by phone number...",
+    "loading": "Loading properties...",
+    "errorTitle": "Couldn't load properties",
+    "errorSubtitle": "Something went wrong while loading the properties.",
+    "tryAgain": "Try again",
+    "empty": "No properties found",
+    "emptyPhone": "No properties found for this phone number",
+    "view": "View",
+    "perNight": "/night",
+    "total": "{count} properties",
+    "page": "Page {page} of {total}",
+    "previous": "Previous",
+    "next": "Next"
   },
   "propertyCount": {
     "tooltip": "Properties you have listed",

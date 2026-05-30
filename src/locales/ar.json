@@ -11,7 +11,27 @@
   "header": {
     "logoAlt": "الشعار",
     "saveAndExit": "حفظ وخروج",
-    "signIn": "تسجيل الدخول"
+    "signIn": "تسجيل الدخول",
+    "allProperties": "كل العقارات",
+    "menu": "القائمة"
+  },
+  "properties": {
+    "title": "كل العقارات",
+    "subtitle": "تصفّح كل العقارات المُدرجة.",
+    "back": "رجوع",
+    "searchPlaceholder": "تصفية برقم الهاتف...",
+    "loading": "جاري تحميل العقارات...",
+    "errorTitle": "تعذّر تحميل العقارات",
+    "errorSubtitle": "حدث خطأ أثناء تحميل العقارات.",
+    "tryAgain": "حاول مرة أخرى",
+    "empty": "لا توجد عقارات",
+    "emptyPhone": "لا توجد عقارات لهذا الرقم",
+    "view": "عرض",
+    "perNight": "/ليلة",
+    "total": "{count} عقار",
+    "page": "صفحة {page} من {total}",
+    "previous": "السابق",
+    "next": "التالي"
   },
   "propertyCount": {
     "tooltip": "العقارات التى أضفتها",

@@ -1,12 +1,9 @@
 'use client';
 
 import { Suspense, useCallback, useEffect, useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth, UserButton } from '@clerk/nextjs';
+import { useAuth } from '@clerk/nextjs';
 import {
-  ArrowLeft,
   Bath,
   Bed,
   DoorOpen,
@@ -22,8 +19,7 @@ import {
 } from 'lucide-react';
 import { UserPropertiesAPI } from '@/lib/api/backend-api';
 import { useTranslation } from '@/lib/i18n/context';
-import { LocaleSwitcher } from '@/app/components/LocaleSwitcher';
-import { PropertyCountBadge } from '@/app/components/PropertyCountBadge';
+import { Header } from '@/app/components/Header';
 import { YearCalendar } from './YearCalendar';
 import { EditPropertyModal } from './EditPropertyModal';
 
@@ -229,31 +225,7 @@ function PropertyDetailsPage() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#FDFDFD] border-b border-[#F0F2F5]">
-        <div className="px-3 sm:px-6 lg:px-[7.5%]">
-          <div className="flex items-center justify-between h-16 lg:h-20">
-            <Link href="/" className="flex items-center gap-2">
-              <Image src="/full_logo.png" alt={t('header.logoAlt')} width={152} height={72} />
-            </Link>
-            <div className="flex items-center gap-3">
-              <PropertyCountBadge />
-              <LocaleSwitcher />
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="flex items-center gap-2 px-5 py-3 text-xs font-normal text-[#1D242B] border border-[#F0F2F5] rounded-full hover:bg-gray-50 transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
-                {t('addListing.propertyDetails.back')}
-              </button>
-              <UserButton
-                showName={false}
-                appearance={{ elements: { avatarBox: 'w-9 h-9', userButtonPopoverActionButton__manageAccount: 'hidden' } }}
-              />
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <main className="flex-1 px-3 sm:px-6 lg:px-[7.5%] pt-20 lg:pt-28 pb-10">
         <div className="mx-auto px-4">
