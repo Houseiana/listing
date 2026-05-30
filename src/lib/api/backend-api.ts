@@ -239,16 +239,11 @@ export const AdminsAPI = {
 };
 
 export interface AdminProperty {
-  id: string;
-  title?: string;
+  propertyId: string;
   description?: string;
-  city?: string;
-  address?: string;
-  basePrice?: number;
-  currency?: string;
-  status?: string;
-  coverImage?: string;
-  propertyUrl?: string;
+  coverPhoto?: string;
+  url?: string;
+  currency?: string | null;
   [key: string]: unknown;
 }
 

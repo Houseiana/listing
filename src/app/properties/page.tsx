@@ -9,7 +9,6 @@ import {
   ExternalLink,
   Home as HomeIcon,
   Image as ImageIcon,
-  MapPin,
   Search,
 } from 'lucide-react';
 import { AdminsAPI, type AdminProperty } from '@/lib/api/backend-api';
@@ -171,7 +170,7 @@ export default function PropertiesPage() {
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {properties.map((p) => (
-                  <PropertyCard key={p.id} property={p} viewLabel={t('properties.view')} perNight={t('properties.perNight')} />
+                  <PropertyCard key={p.propertyId} property={p} viewLabel={t('properties.view')} />
                 ))}
               </div>
 
@@ -211,58 +210,36 @@ export default function PropertiesPage() {
 function PropertyCard({
   property,
   viewLabel,
-  perNight,
 }: {
   property: AdminProperty;
   viewLabel: string;
-  perNight: string;
 }) {
-  const title = property.title || `Property #${property.id}`;
-  const location = [property.city, property.address].filter(Boolean).join(' · ');
-  const currency = property.currency || 'EGP';
+  const description = property.description?.trim();
 
   return (
     <div className="bg-white rounded-3xl border border-[#E8EAED] overflow-hidden hover:shadow-lg transition-all flex flex-col">
       <div className="relative h-[180px] bg-[#F0F2F5]">
-        {property.coverImage ? (
+        {property.coverPhoto ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={property.coverImage} alt={title} className="absolute inset-0 w-full h-full object-cover" />
+          <img src={property.coverPhoto} alt={description || ''} className="absolute inset-0 w-full h-full object-cover" />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <ImageIcon className="w-16 h-16 text-[#C0C6D0]" />
           </div>
         )}
-        {property.status ? (
-          <span className="absolute top-3 left-3 rtl:left-auto rtl:right-3 px-3 py-1.5 rounded-full text-[11px] font-semibold bg-white/90 backdrop-blur-sm text-[#B38600] uppercase tracking-wider">
-            {property.status}
-          </span>
-        ) : null}
-        {typeof property.basePrice === 'number' ? (
-          <div className="absolute top-3 right-3 rtl:right-auto rtl:left-3 px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-full flex items-center gap-1">
-            <span className="text-[12px] font-bold text-[#1D242B]">
-              {currency} {property.basePrice.toLocaleString()}
-            </span>
-            <span className="text-[10px] text-[#9CA3AF]">{perNight}</span>
-          </div>
-        ) : null}
       </div>
 
-      <div className="p-4 flex flex-col gap-2 flex-1">
-        <h3 className="text-[15px] font-bold text-[#1D242B] line-clamp-1">{title}</h3>
-        {location ? (
-          <p className="text-xs text-[#9CA3AF] truncate flex items-center gap-1.5">
-            <MapPin className="w-3 h-3 flex-shrink-0" />
-            {location}
-          </p>
-        ) : null}
-        {property.description ? (
-          <p className="text-xs text-[#647C94] line-clamp-2">{property.description}</p>
-        ) : null}
+      <div className="p-4 flex flex-col gap-3 flex-1">
+        {description ? (
+          <p className="text-sm text-[#1D242B] leading-relaxed line-clamp-3">{description}</p>
+        ) : (
+          <p className="text-sm text-[#9CA3AF] italic">—</p>
+        )}
 
-        <div className="mt-auto pt-2">
-          {property.propertyUrl ? (
+        <div className="mt-auto pt-1">
+          {property.url ? (
             <a
-              href={property.propertyUrl}
+              href={property.url}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full inline-flex items-center justify-center gap-1.5 h-[38px] bg-[#1D242B] text-white rounded-full text-xs font-medium hover:bg-[#2F3A45] transition-colors"
