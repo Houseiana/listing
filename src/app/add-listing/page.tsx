@@ -153,7 +153,7 @@ function AddListingPage() {
   // Debounced property-by-phone search — cancels in-flight requests and ignores stale responses
   const searchPropertiesByPhone = useCallback(async (phone: string) => {
     const cleaned = phone.trim();
-    if (!cleaned || cleaned.length < 4) {
+    if (!cleaned || cleaned.length < 3) {
       if (propertySearchAbortRef.current) propertySearchAbortRef.current.abort();
       propertySearchLatestQueryRef.current = '';
       setPropertyResults([]);
@@ -1659,13 +1659,13 @@ function AddListingPage() {
                       </div>
                     </div>
 
-                    {propertyPhoneQuery.trim().length < 4 && (
+                    {propertyPhoneQuery.trim().length < 3 && (
                       <p className="text-xs text-[#B0B8C1] text-center">
                         {t('addListing.phoneSearch.minCharsHint')}
                       </p>
                     )}
 
-                    {hasSearchedProperties && !isSearchingProperties && propertyResults.length === 0 && propertyPhoneQuery.trim().length >= 4 && (
+                    {hasSearchedProperties && !isSearchingProperties && propertyResults.length === 0 && propertyPhoneQuery.trim().length >= 3 && (
                       <div className="border border-[#E5E9EE] rounded-2xl px-4 py-8 text-center">
                         <HomeIcon className="w-8 h-8 text-[#D1D5DB] mx-auto mb-2" />
                         <p className="text-sm text-[#9CA3AF]">{t('addListing.phoneSearch.noResults')}</p>

@@ -71,7 +71,7 @@
       "title": "Search properties by name or phone",
       "subtitle": "Enter the owner's name or phone number to find their properties.",
       "placeholder": "Enter name or phone number...",
-      "minCharsHint": "Start typing at least 4 characters to search",
+      "minCharsHint": "Start typing at least 3 characters to search",
       "noResults": "No properties found for this search",
       "resultsTitle": "Properties found",
       "viewDetails": "View details",
