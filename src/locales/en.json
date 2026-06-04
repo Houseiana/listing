@@ -68,11 +68,11 @@
       "sending": "Sending..."
     },
     "phoneSearch": {
-      "title": "Search properties by phone",
-      "subtitle": "Enter the owner's phone number to find their properties.",
-      "placeholder": "Enter phone number...",
-      "minCharsHint": "Start typing at least 4 digits to search",
-      "noResults": "No properties found for this phone number",
+      "title": "Search properties by name or phone",
+      "subtitle": "Enter the owner's name or phone number to find their properties.",
+      "placeholder": "Enter name or phone number...",
+      "minCharsHint": "Start typing at least 4 characters to search",
+      "noResults": "No properties found for this search",
       "resultsTitle": "Properties found",
       "viewDetails": "View details",
       "searching": "Searching..."
@@ -87,6 +87,8 @@
       "overview": "Overview",
       "location": "Location",
       "owner": "Owner",
+      "call": "Call",
+      "whatsapp": "WhatsApp",
       "pricing": "Pricing",
       "amenities": "Amenities",
       "rooms": "Rooms",

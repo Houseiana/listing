@@ -1645,13 +1645,10 @@ function AddListingPage() {
                       <div className="flex items-center px-4 py-4 bg-[#F8F9FA] border-2 border-[#E5E9EE] rounded-2xl focus-within:border-[#FCC519] focus-within:bg-white transition-all">
                         <Phone className="w-5 h-5 text-[#9CA3AF] flex-shrink-0 me-3" />
                         <input
-                          type="tel"
-                          dir="ltr"
+                          type="text"
                           value={propertyPhoneQuery}
-                          onKeyDown={blockArabicNumeralKey}
                           onChange={(e) => {
-                            const cleaned = stripArabicNumerals(e.target.value).replace(/[^0-9+\s-]/g, '');
-                            setPropertyPhoneQuery(cleaned);
+                            setPropertyPhoneQuery(stripArabicNumerals(e.target.value));
                           }}
                           placeholder={t('addListing.phoneSearch.placeholder')}
                           className="flex-1 text-base text-[#1D242B] placeholder:text-[#B0B8C1] outline-none bg-transparent"
@@ -1662,13 +1659,13 @@ function AddListingPage() {
                       </div>
                     </div>
 
-                    {propertyPhoneQuery.replace(/\D/g, '').length < 4 && (
+                    {propertyPhoneQuery.trim().length < 4 && (
                       <p className="text-xs text-[#B0B8C1] text-center">
                         {t('addListing.phoneSearch.minCharsHint')}
                       </p>
                     )}
 
-                    {hasSearchedProperties && !isSearchingProperties && propertyResults.length === 0 && propertyPhoneQuery.replace(/\D/g, '').length >= 4 && (
+                    {hasSearchedProperties && !isSearchingProperties && propertyResults.length === 0 && propertyPhoneQuery.trim().length >= 4 && (
                       <div className="border border-[#E5E9EE] rounded-2xl px-4 py-8 text-center">
                         <HomeIcon className="w-8 h-8 text-[#D1D5DB] mx-auto mb-2" />
                         <p className="text-sm text-[#9CA3AF]">{t('addListing.phoneSearch.noResults')}</p>
