@@ -20,7 +20,7 @@ export const PricingStep = ({
   const { t } = useTranslation();
   const starOptions = [1, 2, 3, 4, 5];
   const isEGP = currency === 'EGP';
-  const minBasePrice = isEGP ? 1000 : 20;
+  const minBasePrice = isEGP ? 100 : 20;
   const maxBasePrice = isEGP ? 200000 : 10000;
   const maxCleaningFee = isEGP ? 3000 : 35;
 

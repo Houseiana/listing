@@ -28,7 +28,7 @@ export const detailsSchema = z.object({
   description: z
     .string()
     .min(50, "Description must be at least 50 characters")
-    .max(1000, "Description must be under 1000 characters"),
+    .max(100, "Description must be under 100 characters"),
   amenities: z.array(z.string()).min(1, "Select at least one amenity"),
 });
 

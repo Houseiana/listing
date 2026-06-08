@@ -814,7 +814,7 @@ function AddListingPage() {
           missingFields.push(t('addListing.validation.fields.stars'));
         }
         const isEGP = currency === 'EGP';
-        const minBasePrice = isEGP ? 1000 : 20;
+        const minBasePrice = isEGP ? 100 : 20;
         const maxBasePrice = isEGP ? 200000 : 10000;
         const maxCleaningFee = isEGP ? 3000 : 35;
         const currencySymbol = isEGP ? 'EGP' : 'EGP';
