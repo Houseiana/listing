@@ -66,7 +66,7 @@ export function CancellationPolicyStep({
                   newPolicy.freeCancellationHours = (existingHours === 24 || existingHours === 48) ? existingHours : 24;
                 } else if (policy.id === 'MODERATE') {
                   const existing = listing.cancellationPolicy?.freeCancellationDays;
-                  newPolicy.freeCancellationDays = (existing && existing >= 5 && existing <= 30) ? existing : 5;
+                  newPolicy.freeCancellationDays = (existing && existing >= 3 && existing <= 30) ? existing : 3;
                 }
                 setListing({
                   ...listing,
@@ -201,7 +201,7 @@ export function CancellationPolicyStep({
             <div className="relative">
               <input
                 type="number"
-                min="5"
+                min="3"
                 max="30"
                 title={t('addListing.cancellation.freeCancellationDays')}
                 value={listing.cancellationPolicy.freeCancellationDays || ''}
@@ -219,7 +219,7 @@ export function CancellationPolicyStep({
                 }}
                 onBlur={(e) => {
                   const num = parseInt(stripArabicNumerals(e.target.value), 10);
-                  const clamped = isNaN(num) || num < 5 ? 5 : Math.min(num, 30);
+                  const clamped = isNaN(num) || num < 3 ? 3 : Math.min(num, 30);
                   setListing({ ...listing, cancellationPolicy: { ...listing.cancellationPolicy!, freeCancellationDays: clamped } });
                 }}
                 className="block w-full pl-6 pr-16 h-[60px] border-2 border-[#F0F2F5] rounded-2xl text-base font-medium text-[#2F3A45] focus:ring-2 focus:ring-[#FCC519] focus:border-transparent outline-none bg-white"

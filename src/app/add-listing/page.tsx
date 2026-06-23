@@ -1,13 +1,25 @@
-'use client';
-
+'use client';;
 import { Suspense, useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PropertyAPI, UserPropertiesAPI, UsersAPI } from '@/lib/api/backend-api';
 import { useAuth } from '@clerk/nextjs';
-import Link from 'next/link';
 import { useLoadScript, GoogleMap, Marker } from '@react-google-maps/api';
 import Swal from 'sweetalert2';
-import { MapPin, Navigation, PenLine, Phone, Search, User, UserPlus, X, ArrowLeft, ArrowRight, Eye, EyeOff, Mail, Home as HomeIcon } from 'lucide-react';
+import {
+  MapPin,
+  Navigation,
+  PenLine,
+  Phone,
+  Search,
+  User,
+  UserPlus,
+  ArrowLeft,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  Mail,
+  Home as HomeIcon,
+} from 'lucide-react';
 import { stripArabicNumerals, blockArabicNumeralKey } from '@/lib/utils/numeric-input';
 import { countries as dialCountries } from '@/lib/countries';
 import { PropertyFormData } from '@/app/types';
@@ -28,7 +40,6 @@ import {
   CancellationPolicyStep,
   DocumentsStep,
 } from '@/app/components';
-import { validateRoomCounts } from '@/lib/utils/room-validation';
 import { useCountries, useCities } from '@/hooks/use-locations';
 import Image from 'next/image';
 
@@ -1105,7 +1116,7 @@ function AddListingPage() {
           } else if (policyType === 'MODERATE') {
             formData.append(
               'cancellationPolicy.freeCancellationDays',
-              String(listing.cancellationPolicy.freeCancellationDays || 5)
+              String(listing.cancellationPolicy.freeCancellationDays || 3)
             );
           }
         }
@@ -1500,7 +1511,6 @@ function AddListingPage() {
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <Header />
-
       {/* User Selection Screen */}
       {showIntro && !selectedUser ? (
         <main className="flex-1 px-3 sm:px-6 lg:px-[7.5%] pt-24 lg:pt-28 pb-24 flex items-center justify-center">
@@ -1695,7 +1705,7 @@ function AddListingPage() {
                                   <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-[#F0F2F5] flex-shrink-0 flex items-center justify-center">
                                     {cover ? (
                                       // eslint-disable-next-line @next/next/no-img-element
-                                      <img src={cover} alt={title} className="absolute inset-0 w-full h-full object-cover" />
+                                      (<img src={cover} alt={title} className="absolute inset-0 w-full h-full object-cover" />)
                                     ) : (
                                       <HomeIcon className="w-6 h-6 text-[#9CA3AF]" />
                                     )}
@@ -2238,7 +2248,6 @@ function AddListingPage() {
           </footer>
         </>
       )}
-
     </div>
   );
 }

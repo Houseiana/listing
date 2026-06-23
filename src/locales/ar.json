@@ -194,7 +194,7 @@
         "cancellationPolicy": "سياسة الإلغاء",
         "cancellationPolicyHint": "اختر آلية التعامل مع الإلغاء.",
         "invalidInteger": "الحقول الرقمية يجب أن تكون أعداداً صحيحة 0 أو أكثر",
-        "invalidModerateDays": "السياسة المعتدلة تتطلب ما بين 5 و30 يوماً"
+        "invalidModerateDays": "السياسة المعتدلة تتطلب ما بين 3 و30 يوماً"
       },
       "months": {
         "1": "يناير",
@@ -588,7 +588,7 @@
       "freeCancellationDays": "أيام الإلغاء المجانى",
       "moderatePlaceholder": "مثال: 5",
       "days": "أيام",
-      "moderateRange": "اختر بين 5 و 30 يومًا قبل الوصول"
+      "moderateRange": "اختر بين 3 و 30 يومًا قبل الوصول"
     },
     "discounts": {
       "heading": "أضف خصومات لجذب المزيد من الضيوف",

@@ -269,7 +269,7 @@ export function EditPropertyModal({
     }
     if (policyType === 'MODERATE') {
       const d = Number(freeCancellationDays);
-      if (!Number.isInteger(d) || d < 5 || d > 30) {
+      if (!Number.isInteger(d) || d < 3 || d > 30) {
         Swal.fire({ icon: 'error', title: t('addListing.propertyDetails.edit.invalidModerateDays'), confirmButtonColor: '#000' });
         return false;
       }
@@ -610,7 +610,7 @@ export function EditPropertyModal({
                   <div className="relative">
                     <input
                       type="number"
-                      min={5}
+                      min={3}
                       max={30}
                       step={1}
                       disabled={submitting}
@@ -622,7 +622,7 @@ export function EditPropertyModal({
                       }}
                       onBlur={(e) => {
                         const num = parseInt(stripArabicNumerals(e.target.value), 10);
-                        const clamped = isNaN(num) || num < 5 ? 5 : Math.min(num, 30);
+                        const clamped = isNaN(num) || num < 3 ? 3 : Math.min(num, 30);
                         setFreeCancellationDays(String(clamped));
                       }}
                       className="w-full pe-16 ps-4 h-12 bg-white border-2 border-[#E5E9EE] rounded-xl text-sm text-[#1D242B] outline-none focus:border-[#FCC519] transition-colors disabled:opacity-50"
