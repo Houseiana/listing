@@ -194,7 +194,19 @@
         "cancellationPolicy": "سياسة الإلغاء",
         "cancellationPolicyHint": "اختر آلية التعامل مع الإلغاء.",
         "invalidInteger": "الحقول الرقمية يجب أن تكون أعداداً صحيحة 0 أو أكثر",
-        "invalidModerateDays": "السياسة المعتدلة تتطلب ما بين 3 و30 يوماً"
+        "invalidModerateDays": "السياسة المعتدلة تتطلب ما بين 3 و30 يوماً",
+        "location": "الموقع",
+        "locationHint": "حدّث عنوان العقار وحدّد موقعه على الخريطة.",
+        "country": "الدولة",
+        "selectCountry": "اختر الدولة",
+        "state": "المحافظة",
+        "selectState": "اختر المحافظة",
+        "city": "المدينة",
+        "selectCity": "اختر المدينة",
+        "village": "القرية / الحي",
+        "selectVillage": "اختر القرية",
+        "loadingOptions": "جارٍ التحميل...",
+        "confirmLocationOnMap": "حدّد الموقع على الخريطة"
       },
       "months": {
         "1": "يناير",

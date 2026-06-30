@@ -194,7 +194,19 @@
         "cancellationPolicy": "Cancellation policy",
         "cancellationPolicyHint": "Choose how cancellations are handled.",
         "invalidInteger": "Numeric fields must be 0 or greater whole numbers",
-        "invalidModerateDays": "Moderate policy requires 3–30 days"
+        "invalidModerateDays": "Moderate policy requires 3–30 days",
+        "location": "Location",
+        "locationHint": "Update the property's address and pinpoint it on the map.",
+        "country": "Country",
+        "selectCountry": "Select country",
+        "state": "State / Governorate",
+        "selectState": "Select state",
+        "city": "City",
+        "selectCity": "Select city",
+        "village": "Village / Neighborhood",
+        "selectVillage": "Select village",
+        "loadingOptions": "Loading...",
+        "confirmLocationOnMap": "Pinpoint location on the map"
       },
       "months": {
         "1": "Jan",

@@ -181,6 +181,19 @@ function PropertyDetailsPage() {
   const street = pickString(address, 'streetAddress', 'street') || pickString(property ?? undefined, 'address', 'street');
   const locationLine = [street, city, country].filter(Boolean).join(', ');
 
+  const countryId = pickNumber(address, 'countryId') ?? pickNumber(property ?? undefined, 'countryId');
+  const countryName = country;
+  const stateId = pickNumber(address, 'stateId') ?? pickNumber(property ?? undefined, 'stateId');
+  const stateName = pickString(address, 'state', 'stateName') ?? pickString(property ?? undefined, 'state', 'stateName');
+  const cityId = pickNumber(address, 'cityId') ?? pickNumber(property ?? undefined, 'cityId');
+  const villageId = pickNumber(address, 'villageId') ?? pickNumber(property ?? undefined, 'villageId');
+  const streetAddress = pickString(address, 'streetAddress', 'street');
+  const buildingNumber = pickString(address, 'buildingNumber');
+  const floorNumber = pickString(address, 'floorNumber');
+  const unitNumber = pickString(address, 'unitNumber');
+  const latitude = pickNumber(address, 'latitude') ?? pickNumber(property ?? undefined, 'latitude', 'lat');
+  const longitude = pickNumber(address, 'longitude') ?? pickNumber(property ?? undefined, 'longitude', 'lng', 'lon');
+
   const owner = pickObject(property ?? undefined, 'owner', 'user', 'host');
   const ownerName = pickString(owner, 'fullName', 'name') ||
     [pickString(owner, 'firstName'), pickString(owner, 'lastName')].filter(Boolean).join(' ').trim() ||
@@ -458,6 +471,18 @@ function PropertyDetailsPage() {
             bathrooms,
             amenities: amenityIds,
             cancellationPolicy,
+            countryId,
+            countryName,
+            stateId,
+            stateName,
+            cityId,
+            villageId,
+            streetAddress,
+            buildingNumber,
+            floorNumber,
+            unitNumber,
+            latitude,
+            longitude,
           }}
           onClose={() => setShowEdit(false)}
           onSaved={() => {

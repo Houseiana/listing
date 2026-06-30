@@ -10,6 +10,8 @@ import {
   Check,
   DoorOpen,
   Image as ImageIcon,
+  Info,
+  MapPin,
   Pencil,
   Plus,
   RotateCcw,
@@ -23,12 +25,22 @@ import {
   X,
 } from 'lucide-react';
 import { useAuth } from '@clerk/nextjs';
+import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 import Swal from 'sweetalert2';
 import { UserPropertiesAPI } from '@/lib/api/backend-api';
 import { useTranslation } from '@/lib/i18n/context';
-import { blockArabicNumeralKey, blockNonPositiveNumeralKey, stripArabicNumerals } from '@/lib/utils/numeric-input';
+import {
+  blockArabicNumeralKey,
+  blockNonPositiveNumeralKey,
+  stripArabicNumerals,
+  stripNegativeSign,
+} from '@/lib/utils/numeric-input';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAP_LIBRARIES: 'places'[] = ['places'];
+// Cairo — fallback center when the property has no stored coordinates
+const DEFAULT_LAT = 30.0444;
+const DEFAULT_LNG = 31.2357;
 
 type CancellationPolicyInitial = {
   policyType?: string;
@@ -53,12 +65,65 @@ type EditPropertyInitial = {
   bathrooms?: number;
   amenities?: number[];
   cancellationPolicy?: CancellationPolicyInitial;
+  countryId?: number | string | null;
+  countryName?: string;
+  stateId?: number | string | null;
+  stateName?: string;
+  cityId?: number | string | null;
+  villageId?: number | string | null;
+  streetAddress?: string;
+  buildingNumber?: number | string | null;
+  floorNumber?: number | string | null;
+  unitNumber?: number | string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 type AmenityLookup = {
   id: number;
   name: string;
 };
+
+type LocationLookup = {
+  id: number;
+  name: string;
+};
+
+// Best-effort resolve of a saved id/name against a loaded lookup list (id first, then name)
+function matchLookup(list: LocationLookup[], idOrName: string): LocationLookup | null {
+  const s = (idOrName ?? '').trim().toLowerCase();
+  if (!s) return null;
+  const byId = list.find((x) => String(x.id).toLowerCase() === s);
+  if (byId) return byId;
+  const byName = list.find((x) => x.name.trim().toLowerCase() === s);
+  if (byName) return byName;
+  return (
+    list.find((x) => {
+      const n = x.name.trim().toLowerCase();
+      return n.includes(s) || s.includes(n);
+    }) ?? null
+  );
+}
+
+function parseLookupList(raw: unknown): LocationLookup[] {
+  const list = Array.isArray(raw)
+    ? raw
+    : Array.isArray((raw as { data?: unknown })?.data)
+      ? ((raw as { data: unknown[] }).data)
+      : [];
+  return list
+    .map((item) => {
+      if (!item || typeof item !== 'object') return null;
+      const obj = item as Record<string, unknown>;
+      const idRaw = obj.id ?? obj.cityId ?? obj.villageId ?? obj.itemId;
+      const id = typeof idRaw === 'number' ? idRaw : Number(idRaw);
+      const nameRaw = obj.name ?? obj.title ?? obj.label;
+      const name = typeof nameRaw === 'string' ? nameRaw : '';
+      if (!Number.isFinite(id) || !name) return null;
+      return { id, name };
+    })
+    .filter((x): x is LocationLookup => x !== null);
+}
 
 type PolicyType = 'FLEXIBLE' | 'MODERATE' | 'FIXED';
 
@@ -92,6 +157,43 @@ export function EditPropertyModal({
   const [selectedAmenityIds, setSelectedAmenityIds] = useState<number[]>(initial.amenities ?? []);
   const [amenitiesLookup, setAmenitiesLookup] = useState<AmenityLookup[]>([]);
   const [amenitiesLoading, setAmenitiesLoading] = useState(false);
+
+  // Location (cascade: country → state → city → village).
+  // Country & state are display-only — they drive the lists and are NOT submitted.
+  const [countryId, setCountryId] = useState<string>('');
+  const [stateId, setStateId] = useState<string>('');
+  const [cityId, setCityId] = useState<string>('');
+  const [villageId, setVillageId] = useState<string>('');
+  const [streetAddress, setStreetAddress] = useState<string>(initial.streetAddress ?? '');
+  const [buildingNumber, setBuildingNumber] = useState<string>(initial.buildingNumber != null ? String(initial.buildingNumber) : '');
+  const [floorNumber, setFloorNumber] = useState<string>(initial.floorNumber != null ? String(initial.floorNumber) : '');
+  const [unitNumber, setUnitNumber] = useState<string>(initial.unitNumber != null ? String(initial.unitNumber) : '');
+  const [latitude, setLatitude] = useState<number>(typeof initial.latitude === 'number' ? initial.latitude : DEFAULT_LAT);
+  const [longitude, setLongitude] = useState<number>(typeof initial.longitude === 'number' ? initial.longitude : DEFAULT_LNG);
+
+  const [countriesLookup, setCountriesLookup] = useState<LocationLookup[]>([]);
+  const [statesLookup, setStatesLookup] = useState<LocationLookup[]>([]);
+  const [statesLoading, setStatesLoading] = useState(false);
+  const [citiesLookup, setCitiesLookup] = useState<LocationLookup[]>([]);
+  const [citiesLoading, setCitiesLoading] = useState(false);
+  const [villagesLookup, setVillagesLookup] = useState<LocationLookup[]>([]);
+  const [villagesLoading, setVillagesLoading] = useState(false);
+
+  // Saved location targets, resolved through the cascade once each list loads.
+  const savedLocationRef = useRef({
+    country: initial.countryId != null ? String(initial.countryId) : '',
+    countryName: initial.countryName ?? '',
+    state: initial.stateId != null ? String(initial.stateId) : '',
+    stateName: initial.stateName ?? '',
+    city: initial.cityId != null ? String(initial.cityId) : '',
+    village: initial.villageId != null ? String(initial.villageId) : '',
+  });
+
+  const { isLoaded: isMapLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries: MAP_LIBRARIES,
+  });
 
   const initialPolicy = (initial.cancellationPolicy?.policyType as PolicyType) || 'FLEXIBLE';
   const [policyType, setPolicyType] = useState<PolicyType>(initialPolicy);
@@ -184,7 +286,130 @@ export function EditPropertyModal({
     };
   }, [getToken]);
 
+  // Load countries on mount
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const res = await UserPropertiesAPI.getCountriesLookup(token);
+        if (!cancelled && res.success && res.data) setCountriesLookup(parseLookupList(res.data));
+      } catch {
+        /* ignore */
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [getToken]);
+
+  // Load states whenever the country changes
+  useEffect(() => {
+    if (!countryId) {
+      setStatesLookup([]);
+      return;
+    }
+    let cancelled = false;
+    const run = async () => {
+      setStatesLoading(true);
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const res = await UserPropertiesAPI.getStatesLookup(countryId, token);
+        if (!cancelled && res.success && res.data) setStatesLookup(parseLookupList(res.data));
+      } finally {
+        if (!cancelled) setStatesLoading(false);
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [countryId, getToken]);
+
+  // Load cities whenever the state changes
+  useEffect(() => {
+    if (!stateId) {
+      setCitiesLookup([]);
+      return;
+    }
+    let cancelled = false;
+    const run = async () => {
+      setCitiesLoading(true);
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const res = await UserPropertiesAPI.getCitiesLookup(stateId, token);
+        if (!cancelled && res.success && res.data) setCitiesLookup(parseLookupList(res.data));
+      } finally {
+        if (!cancelled) setCitiesLoading(false);
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [stateId, getToken]);
+
+  // Load villages whenever the city changes
+  useEffect(() => {
+    if (!cityId) {
+      setVillagesLookup([]);
+      return;
+    }
+    let cancelled = false;
+    const run = async () => {
+      setVillagesLoading(true);
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const res = await UserPropertiesAPI.getVillagesLookup(cityId, token);
+        if (!cancelled && res.success && res.data) setVillagesLookup(parseLookupList(res.data));
+      } finally {
+        if (!cancelled) setVillagesLoading(false);
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [cityId, getToken]);
+
+  // Auto-preselect the saved location through the cascade as each list loads
+  useEffect(() => {
+    if (countryId || countriesLookup.length === 0) return;
+    const saved = savedLocationRef.current;
+    const match = matchLookup(countriesLookup, saved.country) || matchLookup(countriesLookup, saved.countryName);
+    if (match) setCountryId(String(match.id));
+  }, [countriesLookup, countryId]);
+
+  useEffect(() => {
+    if (stateId || statesLookup.length === 0) return;
+    const saved = savedLocationRef.current;
+    const match = matchLookup(statesLookup, saved.state) || matchLookup(statesLookup, saved.stateName);
+    if (match) setStateId(String(match.id));
+  }, [statesLookup, stateId]);
+
+  useEffect(() => {
+    if (cityId || citiesLookup.length === 0) return;
+    const match = matchLookup(citiesLookup, savedLocationRef.current.city);
+    if (match) setCityId(String(match.id));
+  }, [citiesLookup, cityId]);
+
+  useEffect(() => {
+    if (villageId || villagesLookup.length === 0) return;
+    const match = matchLookup(villagesLookup, savedLocationRef.current.village);
+    if (match) setVillageId(String(match.id));
+  }, [villagesLookup, villageId]);
+
   const currency = initial.currency || 'EGP';
+
+  const updateMapPosition = (lat: number, lng: number) => {
+    setLatitude(lat);
+    setLongitude(lng);
+  };
 
   const toggleAmenity = (id: number) => {
     setSelectedAmenityIds((prev) =>
@@ -298,6 +523,18 @@ export function EditPropertyModal({
       if (bedrooms !== '') formData.append('bedrooms', String(Number(bedrooms)));
       if (beds !== '') formData.append('beds', String(Number(beds)));
       if (bathrooms !== '') formData.append('bathrooms', String(Number(bathrooms)));
+
+      // Location / address
+      if (cityId) {
+        formData.append('address.cityId', cityId);
+        formData.append('address.villageId', villageId || '0');
+      }
+      if (streetAddress.trim()) formData.append('address.streetAddress', streetAddress.trim());
+      if (buildingNumber.trim()) formData.append('address.buildingNumber', buildingNumber.trim());
+      if (floorNumber.trim()) formData.append('address.floorNumber', floorNumber.trim());
+      if (unitNumber.trim()) formData.append('address.unitNumber', unitNumber.trim());
+      formData.append('address.latitude', String(latitude));
+      formData.append('address.longitude', String(longitude));
 
       for (const id of selectedAmenityIds) formData.append('amenities', String(id));
 
@@ -466,6 +703,204 @@ export function EditPropertyModal({
                 icon={<CalendarDays className="w-4 h-4 text-[#5E5E5E]" />}
                 disabled={submitting}
               />
+            </div>
+          </Section>
+
+          <Section title={t('addListing.propertyDetails.edit.location')} hint={t('addListing.propertyDetails.edit.locationHint')}>
+            <div className="flex flex-col gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Field label={t('addListing.propertyDetails.edit.country')}>
+                  <select
+                    value={countryId}
+                    disabled={submitting || countriesLookup.length === 0}
+                    onChange={(e) => {
+                      savedLocationRef.current.state = '';
+                      savedLocationRef.current.stateName = '';
+                      savedLocationRef.current.city = '';
+                      savedLocationRef.current.village = '';
+                      setCountryId(e.target.value);
+                      setStateId('');
+                      setCityId('');
+                      setVillageId('');
+                    }}
+                    className={`${inputClass} disabled:cursor-not-allowed`}
+                  >
+                    <option value="">
+                      {countriesLookup.length === 0 ? t('addListing.propertyDetails.edit.loadingOptions') : t('addListing.propertyDetails.edit.selectCountry')}
+                    </option>
+                    {countriesLookup.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label={t('addListing.propertyDetails.edit.state')}>
+                  <select
+                    value={stateId}
+                    disabled={submitting || !countryId || statesLoading}
+                    onChange={(e) => {
+                      savedLocationRef.current.city = '';
+                      savedLocationRef.current.village = '';
+                      setStateId(e.target.value);
+                      setCityId('');
+                      setVillageId('');
+                    }}
+                    className={`${inputClass} disabled:cursor-not-allowed`}
+                  >
+                    <option value="">
+                      {statesLoading ? t('addListing.propertyDetails.edit.loadingOptions') : t('addListing.propertyDetails.edit.selectState')}
+                    </option>
+                    {statesLookup.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label={t('addListing.propertyDetails.edit.city')}>
+                  <select
+                    value={cityId}
+                    disabled={submitting || !stateId || citiesLoading}
+                    onChange={(e) => {
+                      savedLocationRef.current.village = '';
+                      setCityId(e.target.value);
+                      setVillageId('');
+                    }}
+                    className={`${inputClass} disabled:cursor-not-allowed`}
+                  >
+                    <option value="">
+                      {citiesLoading ? t('addListing.propertyDetails.edit.loadingOptions') : t('addListing.propertyDetails.edit.selectCity')}
+                    </option>
+                    {citiesLookup.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label={t('addListing.propertyDetails.edit.village')}>
+                  <select
+                    value={villageId}
+                    disabled={submitting || !cityId || villagesLoading}
+                    onChange={(e) => setVillageId(e.target.value)}
+                    className={`${inputClass} disabled:cursor-not-allowed`}
+                  >
+                    <option value="">
+                      {villagesLoading ? t('addListing.propertyDetails.edit.loadingOptions') : t('addListing.propertyDetails.edit.selectVillage')}
+                    </option>
+                    {villagesLookup.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.name}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+
+              <Field label={t('addListing.location.streetAddress')}>
+                <input
+                  type="text"
+                  value={streetAddress}
+                  disabled={submitting}
+                  onChange={(e) => setStreetAddress(e.target.value)}
+                  placeholder={t('addListing.location.enterStreetAddress')}
+                  className={inputClass}
+                />
+              </Field>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <Field label={t('addListing.location.buildingNumber')}>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={buildingNumber}
+                    disabled={submitting}
+                    onKeyDown={blockNonPositiveNumeralKey}
+                    onChange={(e) => setBuildingNumber(stripNegativeSign(stripArabicNumerals(e.target.value)))}
+                    placeholder={t('addListing.location.buildingNumberPlaceholder')}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label={t('addListing.location.floorNumber')}>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={floorNumber}
+                    disabled={submitting}
+                    onKeyDown={blockNonPositiveNumeralKey}
+                    onChange={(e) => setFloorNumber(stripNegativeSign(stripArabicNumerals(e.target.value)))}
+                    placeholder={t('addListing.location.floorNumberPlaceholder')}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label={t('addListing.location.unitNumber')}>
+                  <input
+                    type="text"
+                    value={unitNumber}
+                    disabled={submitting}
+                    onKeyDown={(e) => {
+                      if (e.key === '-' || e.key === '−') e.preventDefault();
+                    }}
+                    onChange={(e) => setUnitNumber(stripNegativeSign(e.target.value))}
+                    placeholder={t('addListing.location.unitNumberPlaceholder')}
+                    className={inputClass}
+                  />
+                </Field>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-[#B38600]" />
+                  <span className="text-xs font-semibold text-[#1D242B]">
+                    {t('addListing.propertyDetails.edit.confirmLocationOnMap')}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#9CA3AF] flex items-center gap-1">
+                  <Info className="w-3 h-3 flex-shrink-0" />
+                  {t('addListing.location.dragPinHint')}
+                </p>
+                <div className="h-72 rounded-2xl overflow-hidden border-2 border-[#E5E9EE] bg-[#F8F9FA]">
+                  {isMapLoaded ? (
+                    <GoogleMap
+                      mapContainerStyle={{ width: '100%', height: '100%' }}
+                      center={{ lat: latitude, lng: longitude }}
+                      zoom={15}
+                      options={{
+                        disableDefaultUI: false,
+                        zoomControl: true,
+                        mapTypeControl: false,
+                        streetViewControl: false,
+                        fullscreenControl: false,
+                        draggable: !submitting,
+                      }}
+                      onClick={(e) => {
+                        if (!submitting && e.latLng) updateMapPosition(e.latLng.lat(), e.latLng.lng());
+                      }}
+                    >
+                      <Marker
+                        position={{ lat: latitude, lng: longitude }}
+                        draggable={!submitting}
+                        onDragEnd={(e) => {
+                          if (!submitting && e.latLng) updateMapPosition(e.latLng.lat(), e.latLng.lng());
+                        }}
+                      />
+                    </GoogleMap>
+                  ) : (
+                    <div className="h-full flex items-center justify-center">
+                      <div className="text-center flex flex-col items-center gap-2">
+                        <div className="w-10 h-10 rounded-full bg-[#FCC519]/15 flex items-center justify-center animate-pulse">
+                          <MapPin className="w-5 h-5 text-[#B38600]" />
+                        </div>
+                        <p className="text-xs text-[#647C94]">{t('addListing.location.loadingMap')}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <p className="text-[11px] text-[#9CA3AF]" dir="ltr">
+                  {t('addListing.location.coordinates')}: {latitude.toFixed(6)}, {longitude.toFixed(6)}
+                </p>
+              </div>
             </div>
           </Section>
 

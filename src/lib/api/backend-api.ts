@@ -158,6 +158,30 @@ export const UserPropertiesAPI = {
       headers: authHeader(token),
     });
   },
+
+  getCountriesLookup(token: string) {
+    return request('/api/SalesDashboardLookup/Countries', {
+      headers: authHeader(token),
+    });
+  },
+
+  getStatesLookup(countryId: string, token: string) {
+    return request(`/api/SalesDashboardLookup/States?countryId=${encodeURIComponent(countryId)}`, {
+      headers: authHeader(token),
+    });
+  },
+
+  getCitiesLookup(stateId: string, token: string) {
+    return request(`/api/SalesDashboardLookup/Cities?stateId=${encodeURIComponent(stateId)}`, {
+      headers: authHeader(token),
+    });
+  },
+
+  getVillagesLookup(cityId: string, token: string) {
+    return request(`/api/SalesDashboardLookup/Villages?cityId=${encodeURIComponent(cityId)}`, {
+      headers: authHeader(token),
+    });
+  },
 };
 
 export const UsersAPI = {
