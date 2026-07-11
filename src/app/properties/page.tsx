@@ -178,7 +178,7 @@ export default function PropertiesPage() {
               <button
                 type="button"
                 onClick={() => setShowFilterModal(true)}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#FCC519] px-4 py-3 text-sm font-semibold text-[#1D242B] transition hover:bg-[#f0bb0e]"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#FCC519] px-5 py-3 text-md font-semibold text-[#1D242B] transition hover:bg-[#f0bb0e]"
               >
                 {t('properties.filter.button')}
                 {(filters.countryId || filters.stateId || filters.cityId || filters.villageId || filters.minPrice != null || filters.maxPrice != null) && (
