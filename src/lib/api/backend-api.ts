@@ -260,13 +260,54 @@ export const AdminsAPI = {
       signal: options?.signal,
     });
   },
+
+  filterProperties(
+    token: string,
+    options?: {
+      page?: number;
+      limit?: number;
+      countryId?: string;
+      stateId?: string;
+      cityId?: string;
+      villageId?: string;
+      minPrice?: number;
+      maxPrice?: number;
+      phone?: string;
+      signal?: AbortSignal;
+    }
+  ) {
+    const params = new URLSearchParams();
+    params.set('page', String(options?.page ?? 1));
+    params.set('limit', String(options?.limit ?? 20));
+    if (options?.countryId) params.set('countryId', options.countryId);
+    if (options?.stateId) params.set('stateId', options.stateId);
+    if (options?.cityId) params.set('cityId', options.cityId);
+    if (options?.villageId) params.set('villageId', options.villageId);
+    if (options?.minPrice !== undefined) params.set('minPrice', String(options.minPrice));
+    if (options?.maxPrice !== undefined) params.set('maxPrice', String(options.maxPrice));
+    if (options?.phone) params.set('phone', options.phone);
+    const url = `/api/sales-dashboard/properties/filter?${params.toString()}`;
+    return request<{
+      data?: AdminProperty[];
+      pagination?: { total?: number; page?: number; limit?: number; totalPages?: number };
+    }>(url, {
+      headers: authHeader(token),
+      signal: options?.signal,
+    });
+  },
 };
 
 export interface AdminProperty {
   propertyId: string;
+  title?: string;
+  name?: string;
+  propertyTitle?: string;
   description?: string;
   coverPhoto?: string;
   url?: string;
+  price?: number;
+  pricePerNight?: number;
+  basePrice?: number;
   currency?: string | null;
   [key: string]: unknown;
 }
