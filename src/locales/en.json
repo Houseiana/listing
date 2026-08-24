@@ -29,13 +29,14 @@
     "view": "View",
     "perNight": "/night",
     "total": "{count} properties",
+    "bedrooms": "{count} bedrooms",
     "page": "Page {page} of {total}",
     "previous": "Previous",
     "next": "Next",
     "filter": {
       "button": "Filters",
       "title": "Filter properties",
-      "subtitle": "Refine results by location and price range.",
+      "subtitle": "Refine results by location, price, bedrooms and property type.",
       "close": "Close filter modal",
       "country": "Country",
       "allCountries": "All countries",
@@ -48,6 +49,10 @@
       "minPrice": "Min price",
       "maxPrice": "Max price",
       "noMax": "No max",
+      "bedrooms": "Bedrooms",
+      "anyBedrooms": "Any",
+      "propertyType": "Property type",
+      "allPropertyTypes": "All property types",
       "invalidPrice": "Max price must be greater than or equal to min price.",
       "ready": "Filters are ready to apply.",
       "none": "No filters selected.",
@@ -59,7 +64,8 @@
       "loadCountriesError": "Failed to load countries.",
       "loadStatesError": "Failed to load states.",
       "loadCitiesError": "Failed to load cities.",
-      "loadVillagesError": "Failed to load villages."
+      "loadVillagesError": "Failed to load villages.",
+      "loadPropertyTypesError": "Failed to load property types."
     }
   },
   "propertyCount": {

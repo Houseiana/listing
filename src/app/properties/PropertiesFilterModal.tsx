@@ -13,12 +13,15 @@ export type PropertiesFilter = {
   villageId?: string;
   minPrice?: number;
   maxPrice?: number;
+  bedrooms?: number;
+  propertyTypeId?: string;
   // Human-readable labels captured at apply time so the summary can show
   // names instead of raw IDs. The API layer only reads the *Id fields.
   countryName?: string;
   stateName?: string;
   cityName?: string;
   villageName?: string;
+  propertyTypeName?: string;
 };
 
 type LookupOption = { id: string; name: string };
@@ -50,7 +53,8 @@ function parseLookupList(raw: unknown): LookupOption[] {
     .map((item) => {
       if (!item || typeof item !== 'object') return null;
       const obj = item as Record<string, unknown>;
-      const idRaw = obj.id ?? obj.countryId ?? obj.stateId ?? obj.cityId ?? obj.villageId ?? obj.itemId ?? obj.value;
+      const idRaw =
+        obj.id ?? obj.countryId ?? obj.stateId ?? obj.cityId ?? obj.villageId ?? obj.propertyTypeId ?? obj.itemId ?? obj.value;
       const nameRaw = obj.name ?? obj.title ?? obj.label ?? obj.text;
       const id = idRaw == null ? '' : String(idRaw);
       const name = typeof nameRaw === 'string' ? nameRaw : String(nameRaw ?? '');
@@ -68,10 +72,12 @@ export function PropertiesFilterModal({ open, initial, onClose, onApply }: Prope
   const [states, setStates] = useState<LookupOption[]>([]);
   const [cities, setCities] = useState<LookupOption[]>([]);
   const [villages, setVillages] = useState<LookupOption[]>([]);
+  const [propertyTypes, setPropertyTypes] = useState<LookupOption[]>([]);
   const [isLoadingCountries, setIsLoadingCountries] = useState(false);
   const [isLoadingStates, setIsLoadingStates] = useState(false);
   const [isLoadingCities, setIsLoadingCities] = useState(false);
   const [isLoadingVillages, setIsLoadingVillages] = useState(false);
+  const [isLoadingPropertyTypes, setIsLoadingPropertyTypes] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   const modalRef = useRef<HTMLDivElement>(null);
@@ -102,7 +108,24 @@ export function PropertiesFilterModal({ open, initial, onClose, onApply }: Prope
       }
     };
 
+    const loadPropertyTypes = async () => {
+      setIsLoadingPropertyTypes(true);
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const res = await UserPropertiesAPI.getPropertyTypesLookup(token);
+        if (!canceled && res.success) {
+          setPropertyTypes(parseLookupList(res.data));
+        }
+      } catch (error) {
+        if (!canceled) setFetchError(t('properties.filter.loadPropertyTypesError'));
+      } finally {
+        if (!canceled) setIsLoadingPropertyTypes(false);
+      }
+    };
+
     loadCountries();
+    loadPropertyTypes();
 
     return () => {
       canceled = true;
@@ -249,7 +272,9 @@ export function PropertiesFilterModal({ open, initial, onClose, onApply }: Prope
     Boolean(draftFilter.cityId) ||
     Boolean(draftFilter.villageId) ||
     draftFilter.minPrice !== undefined ||
-    draftFilter.maxPrice !== undefined;
+    draftFilter.maxPrice !== undefined ||
+    draftFilter.bedrooms !== undefined ||
+    Boolean(draftFilter.propertyTypeId);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm">
@@ -423,6 +448,51 @@ export function PropertiesFilterModal({ open, initial, onClose, onApply }: Prope
             </label>
           </div>
 
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-[#65768E]">
+                {t('properties.filter.bedrooms')}
+              </span>
+              <input
+                type="number"
+                min={0}
+                step={1}
+                value={draftFilter.bedrooms ?? ''}
+                placeholder={t('properties.filter.anyBedrooms')}
+                onChange={(event) => {
+                  setDraftFilter((prev) => ({
+                    ...prev,
+                    bedrooms: toNumber(event.target.value),
+                  }));
+                }}
+                className="w-full rounded-3xl border border-[#E5E9EE] bg-white px-4 py-3 text-sm text-[#1D242B] outline-none transition focus:border-[#FCC519]"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-[#65768E]">
+                {t('properties.filter.propertyType')}
+              </span>
+              <select
+                value={draftFilter.propertyTypeId ?? ''}
+                onChange={(event) => {
+                  setDraftFilter((prev) => ({
+                    ...prev,
+                    propertyTypeId: event.target.value || undefined,
+                  }));
+                }}
+                disabled={isLoadingPropertyTypes}
+                className="w-full rounded-3xl border border-[#E5E9EE] bg-white px-4 py-3 text-sm text-[#1D242B] outline-none transition focus:border-[#FCC519] disabled:cursor-not-allowed disabled:bg-[#F8F9FA]"
+              >
+                <option value="">{t('properties.filter.allPropertyTypes')}</option>
+                {propertyTypes.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
           {invalidPrice ? (
             <p className="text-sm text-[#B91C1C]">{t('properties.filter.invalidPrice')}</p>
           ) : null}
@@ -452,6 +522,7 @@ export function PropertiesFilterModal({ open, initial, onClose, onApply }: Prope
                     stateName: nameById(states, draftFilter.stateId),
                     cityName: nameById(cities, draftFilter.cityId),
                     villageName: nameById(villages, draftFilter.villageId),
+                    propertyTypeName: nameById(propertyTypes, draftFilter.propertyTypeId),
                   });
                 }}
                 className="rounded-full bg-[#FCC519] px-5 py-3 text-sm font-semibold text-[#1D242B] transition hover:bg-[#F0BB0E]"

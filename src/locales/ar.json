@@ -29,13 +29,14 @@
     "view": "عرض",
     "perNight": "/ليلة",
     "total": "{count} عقار",
+    "bedrooms": "{count} غرفة نوم",
     "page": "صفحة {page} من {total}",
     "previous": "السابق",
     "next": "التالي",
     "filter": {
       "button": "الفلاتر",
       "title": "تصفية العقارات",
-      "subtitle": "حسّن النتائج حسب الموقع ونطاق السعر.",
+      "subtitle": "حسّن النتائج حسب الموقع والسعر وعدد الغرف ونوع العقار.",
       "close": "إغلاق نافذة التصفية",
       "country": "الدولة",
       "allCountries": "كل الدول",
@@ -48,6 +49,10 @@
       "minPrice": "أقل سعر",
       "maxPrice": "أعلى سعر",
       "noMax": "بدون حد أقصى",
+      "bedrooms": "غرف النوم",
+      "anyBedrooms": "الكل",
+      "propertyType": "نوع العقار",
+      "allPropertyTypes": "كل أنواع العقارات",
       "invalidPrice": "يجب أن يكون أعلى سعر أكبر من أو يساوي أقل سعر.",
       "ready": "الفلاتر جاهزة للتطبيق.",
       "none": "لم يتم اختيار أي فلاتر.",
@@ -59,7 +64,8 @@
       "loadCountriesError": "فشل تحميل الدول.",
       "loadStatesError": "فشل تحميل المحافظات.",
       "loadCitiesError": "فشل تحميل المدن.",
-      "loadVillagesError": "فشل تحميل القرى."
+      "loadVillagesError": "فشل تحميل القرى.",
+      "loadPropertyTypesError": "فشل تحميل أنواع العقارات."
     }
   },
   "propertyCount": {
