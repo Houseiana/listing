@@ -182,6 +182,12 @@ export const UserPropertiesAPI = {
       headers: authHeader(token),
     });
   },
+
+  getPropertyTypesLookup(token: string) {
+    return request('/api/SalesDashboardLookup/PropertyTypes', {
+      headers: authHeader(token),
+    });
+  },
 };
 
 export const UsersAPI = {
@@ -272,6 +278,8 @@ export const AdminsAPI = {
       villageId?: string;
       minPrice?: number;
       maxPrice?: number;
+      bedrooms?: number;
+      propertyTypeId?: string;
       phone?: string;
       signal?: AbortSignal;
     }
@@ -285,6 +293,8 @@ export const AdminsAPI = {
     if (options?.villageId) params.set('villageId', options.villageId);
     if (options?.minPrice !== undefined) params.set('minPrice', String(options.minPrice));
     if (options?.maxPrice !== undefined) params.set('maxPrice', String(options.maxPrice));
+    if (options?.bedrooms !== undefined) params.set('bedrooms', String(options.bedrooms));
+    if (options?.propertyTypeId) params.set('propertyTypeId', options.propertyTypeId);
     if (options?.phone) params.set('phone', options.phone);
     const url = `/api/sales-dashboard/properties/filter?${params.toString()}`;
     return request<{
@@ -309,6 +319,10 @@ export interface AdminProperty {
   pricePerNight?: number;
   basePrice?: number;
   currency?: string | null;
+  bedrooms?: number;
+  propertyTypeId?: string | number;
+  propertyType?: string;
+  propertyTypeName?: string;
   [key: string]: unknown;
 }
 

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import {
+  BedDouble,
   ChevronLeft,
   ChevronRight,
   ExternalLink,
@@ -66,18 +67,20 @@ export default function PropertiesPage() {
         if (!controller.signal.aborted) setError('auth');
         return;
       }
-      const hasLocationOrPriceFilter =
+      const hasFilter =
         Boolean(filters.countryId) ||
         Boolean(filters.stateId) ||
         Boolean(filters.cityId) ||
         Boolean(filters.villageId) ||
         filters.minPrice !== undefined ||
-        filters.maxPrice !== undefined;
+        filters.maxPrice !== undefined ||
+        filters.bedrooms !== undefined ||
+        Boolean(filters.propertyTypeId);
 
       // Default admin listing keeps the original endpoint (scoped to this
-      // admin). Only switch to the global filter endpoint when a location or
-      // price filter is actually applied.
-      const res = hasLocationOrPriceFilter
+      // admin). Only switch to the global filter endpoint when one of the
+      // modal filters is actually applied.
+      const res = hasFilter
         ? await AdminsAPI.filterProperties(token, {
             page,
             limit: PAGE_SIZE,
@@ -88,6 +91,8 @@ export default function PropertiesPage() {
             villageId: filters.villageId,
             minPrice: filters.minPrice,
             maxPrice: filters.maxPrice,
+            bedrooms: filters.bedrooms,
+            propertyTypeId: filters.propertyTypeId,
             signal: controller.signal,
           })
         : await AdminsAPI.getProperties(userId, token, {
@@ -142,6 +147,9 @@ export default function PropertiesPage() {
     if (filters.villageId) items.push(`${t('properties.filter.village')}: ${filters.villageName ?? filters.villageId}`);
     if (filters.minPrice !== undefined) items.push(`${t('properties.filter.minPrice')}: ${filters.minPrice}`);
     if (filters.maxPrice !== undefined) items.push(`${t('properties.filter.maxPrice')}: ${filters.maxPrice}`);
+    if (filters.bedrooms !== undefined) items.push(`${t('properties.filter.bedrooms')}: ${filters.bedrooms}`);
+    if (filters.propertyTypeId)
+      items.push(`${t('properties.filter.propertyType')}: ${filters.propertyTypeName ?? filters.propertyTypeId}`);
     if (phone) items.push(`${t('properties.filter.phone')}: ${phone}`);
     return items.length > 0 ? items.join(' · ') : null;
   }, [filters, phone, t]);
@@ -181,7 +189,7 @@ export default function PropertiesPage() {
                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#FCC519] px-5 py-3 text-md font-semibold text-[#1D242B] transition hover:bg-[#f0bb0e]"
               >
                 {t('properties.filter.button')}
-                {(filters.countryId || filters.stateId || filters.cityId || filters.villageId || filters.minPrice != null || filters.maxPrice != null) && (
+                {(filters.countryId || filters.stateId || filters.cityId || filters.villageId || filters.minPrice != null || filters.maxPrice != null || filters.bedrooms != null || filters.propertyTypeId) && (
                   <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[#1D242B]" />
                 )}
               </button>
@@ -241,7 +249,12 @@ export default function PropertiesPage() {
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {properties.map((p) => (
-                  <PropertyCard key={p.propertyId} property={p} viewLabel={t('properties.view')} />
+                  <PropertyCard
+                    key={p.propertyId}
+                    property={p}
+                    viewLabel={t('properties.view')}
+                    bedroomsLabel={t('properties.bedrooms', { count: p.bedrooms ?? 0 })}
+                  />
                 ))}
               </div>
 
@@ -291,15 +304,19 @@ export default function PropertiesPage() {
 function PropertyCard({
   property,
   viewLabel,
+  bedroomsLabel,
 }: {
   property: AdminProperty;
   viewLabel: string;
+  bedroomsLabel: string;
 }) {
   const title =
     property.title || property.propertyTitle || property.name
   const description = property.description?.trim();
   const price = property.price ?? property.pricePerNight ?? property.basePrice;
   const currency = property.currency || 'EGP';
+  const bedrooms = typeof property.bedrooms === 'number' ? property.bedrooms : undefined;
+  const propertyType = property.propertyType || property.propertyTypeName;
 
   return (
     <div className="bg-white rounded-3xl border border-[#E8EAED] overflow-hidden hover:shadow-lg transition-all flex flex-col">
@@ -319,6 +336,21 @@ function PropertyCard({
           <h3 className="text-sm font-semibold text-[#1D242B] leading-6 truncate">{title || 'No title'}</h3>
           {price !== undefined ? (
             <p className="text-sm font-semibold text-[#1D242B]">{currency} {price.toLocaleString()}</p>
+          ) : null}
+          {bedrooms !== undefined || propertyType ? (
+            <div className="flex flex-wrap items-center gap-2">
+              {bedrooms !== undefined ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F8F9FA] px-3 py-1 text-xs font-medium text-[#647C94]">
+                  <BedDouble className="w-3.5 h-3.5" />
+                  {bedroomsLabel}
+                </span>
+              ) : null}
+              {propertyType ? (
+                <span className="inline-flex items-center rounded-full bg-[#F8F9FA] px-3 py-1 text-xs font-medium text-[#647C94]">
+                  {propertyType}
+                </span>
+              ) : null}
+            </div>
           ) : null}
           {description ? (
             <p className="text-sm text-[#1D242B] leading-relaxed line-clamp-2">{description}</p>
